@@ -61,15 +61,29 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
 app.config['MAIL_DEFAULT_SENDER'] = ('NeuroScan AI', os.environ.get('MAIL_USERNAME', 'noreply@neuroscan.ai'))
 mail = Mail(app)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
-MODELS_FOLDER = os.path.join(os.path.dirname(__file__), 'models')
-DB_PATH       = os.path.join(os.path.dirname(__file__), 'users.db')
+IS_VERCEL = os.environ.get('VERCEL') == '1'
+
+if IS_VERCEL:
+    UPLOAD_FOLDER = '/tmp/uploads'
+    DB_PATH       = '/tmp/users.db'
+    MODELS_FOLDER = os.path.join(os.path.dirname(__file__), 'models')
+else:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+    MODELS_FOLDER = os.path.join(os.path.dirname(__file__), 'models')
+    DB_PATH       = os.path.join(os.path.dirname(__file__), 'users.db')
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(MODELS_FOLDER, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except Exception:
+    pass
+
+try:
+    os.makedirs(MODELS_FOLDER, exist_ok=True)
+except Exception:
+    pass
 
 # ───────────────────────────────────────────────
 # Constants
@@ -1565,13 +1579,15 @@ def profile_page():
     return render_template('profile.html')
 
 
+# Initialize database and load model at import time (crucial for Vercel/serverless startup)
+init_db()
+load_trained_model()
+
 # ═══════════════════════════════════════════════
 #  ENTRY POINT
 # ═══════════════════════════════════════════════
 
 if __name__ == '__main__':
-    init_db()
-    load_trained_model()
     print("\n" + "=" * 60)
     print("[START] NeuroScan AI  -  http://127.0.0.1:5000")
     print("=" * 60)
