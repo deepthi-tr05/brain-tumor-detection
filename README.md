@@ -15,7 +15,7 @@
 
 ---
 
-LIVE DEMO : **[CLICK_HERE]**
+🚀 Live Demo(https://ml-regression-viz.vercel.app/)
 ## ⚙️ Core Architecture & Pipeline
 
 Below is the workflow showing how an MRI scan is processed from user upload through prediction, visualization generation, and secure storage in the SQLite history.
