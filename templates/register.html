@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account – NeuroScan AI</title>
+    <meta name="description" content="Create your NeuroScan AI account to access AI-powered brain tumor detection">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root[data-theme="dark"] {
+            --primary: #a78bfa;
+            --primary-dim: rgba(167,139,250,0.15);
+            --primary-dark: #7c3aed;
+            --accent: #f472b6;
+            --success: #34d399;
+            --danger: #fb7185;
+            --bg-deep: #0d0614;
+            --bg-card: rgba(124,58,237,0.07);
+            --border: rgba(167,139,250,0.15);
+            --border-glow: rgba(167,139,250,0.35);
+            --text: #f1e8ff;
+            --text-muted: rgba(220,200,255,0.65);
+        }
+        :root[data-theme="light"] {
+            --primary: #7c3aed;
+            --primary-dim: rgba(124,58,237,0.1);
+            --primary-dark: #5b21b6;
+            --accent: #ec4899;
+            --success: #059669;
+            --danger: #e11d48;
+            --bg-deep: #faf5ff;
+            --bg-card: rgba(255,255,255,0.95);
+            --border: rgba(124,58,237,0.2);
+            --border-glow: rgba(124,58,237,0.4);
+            --text: #1e1035;
+            --text-muted: #4c1d95;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            overflow-x: hidden; position: relative; padding: 24px 0;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+            background:
+                radial-gradient(ellipse at 10% 50%, rgba(124,58,237,0.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 90% 15%, rgba(236,72,153,0.12) 0%, transparent 45%),
+                radial-gradient(ellipse at 60% 90%, rgba(167,139,250,0.10) 0%, transparent 45%),
+                var(--bg-deep);
+        }
+        [data-theme="light"] .bg-scene {
+            background: radial-gradient(ellipse at 10% 50%, rgba(124,58,237,0.09) 0%, transparent 55%), radial-gradient(ellipse at 90% 15%, rgba(236,72,153,0.07) 0%, transparent 45%), var(--bg-deep);
+        }
+        .orb { position: absolute; border-radius: 50%; filter: blur(90px); animation: orbFloat 20s ease-in-out infinite; }
+        .orb-1 { width:640px;height:640px;background:radial-gradient(circle,rgba(124,58,237,0.35),rgba(167,139,250,0.15) 50%,transparent 70%);top:-220px;right:-110px; }
+        .orb-2 { width:540px;height:540px;background:radial-gradient(circle,rgba(236,72,153,0.28),rgba(244,114,182,0.10) 50%,transparent 70%);bottom:-110px;left:-90px;animation-delay:7s; }
+        .orb-3 { width:380px;height:380px;background:radial-gradient(circle,rgba(91,33,182,0.22),transparent 70%);top:45%;right:18%;animation-delay:14s; }
+        .orb-4 { width:280px;height:280px;background:radial-gradient(circle,rgba(192,132,252,0.20),transparent 70%);top:20%;left:12%;animation-delay:4s; }
+        @keyframes orbFloat {
+            0%,100%{transform:translate(0,0) scale(1);}
+            25%{transform:translate(-22px,26px) scale(1.04);}
+            50%{transform:translate(18px,-18px) scale(0.97);}
+            75%{transform:translate(10px,20px) scale(1.02);}
+        }
+        [data-theme="light"] .orb { opacity: 0.2; }
+
+        .hex-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.3;
+            background-image: linear-gradient(rgba(167,139,250,0.10) 1px,transparent 1px), linear-gradient(90deg,rgba(167,139,250,0.10) 1px,transparent 1px);
+            background-size: 44px 44px; animation: gridShift 30s linear infinite;
+        }
+        @keyframes gridShift { 0%{background-position:0 0;} 100%{background-position:44px 44px;} }
+        [data-theme="light"] .hex-grid { opacity: 0.12; }
+
+        .scanline {
+            position: fixed; left:0; right:0; height:1px; z-index:0; pointer-events:none;
+            background: linear-gradient(90deg,transparent 0%,rgba(167,139,250,0.6) 25%,rgba(236,72,153,0.9) 50%,rgba(167,139,250,0.6) 75%,transparent 100%);
+            animation: scanSweep 5s linear infinite; opacity:0.6;
+            box-shadow: 0 0 16px rgba(167,139,250,0.7),0 0 32px rgba(236,72,153,0.3);
+        }
+        @keyframes scanSweep{0%{top:-2%;opacity:0;}5%{opacity:0.6;}95%{opacity:0.6;}100%{top:102%;opacity:0;}}
+        [data-theme="light"] .scanline { opacity: 0.25; }
+
+        .canvas-particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+        .auth-wrapper { position:relative;z-index:10;width:100%;max-width:480px;padding:20px; }
+
+        .brand { text-align:center;margin-bottom:28px; }
+        .brand-icon {
+            display:inline-flex;align-items:center;justify-content:center;
+            width:68px;height:68px;background:linear-gradient(135deg,#7c3aed,#ec4899);
+            border-radius:20px;margin-bottom:14px;
+            box-shadow:0 0 40px rgba(167,139,250,0.5),0 0 80px rgba(124,58,237,0.25);
+            animation:iconPulse 3s ease-in-out infinite;
+        }
+        @keyframes iconPulse{0%,100%{box-shadow:0 0 40px rgba(167,139,250,0.5),0 0 80px rgba(124,58,237,0.25);}50%{box-shadow:0 0 60px rgba(167,139,250,0.7),0 0 100px rgba(236,72,153,0.35);}}
+        .brand-icon i { font-size:28px;color:white; }
+        .brand h1 { font-size:1.65rem;font-weight:800;background:linear-gradient(135deg,#e9d5ff 20%,#f472b6 100%);-webkit-background-clip:text;background-clip:text;color:transparent; }
+        .brand p { color:var(--text-muted);font-size:0.86rem;margin-top:5px; }
+
+        .auth-card {
+            background:var(--bg-card);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+            border:1px solid var(--border);border-radius:26px;padding:36px;
+            box-shadow:0 24px 80px rgba(0,0,0,0.5),inset 0 1px 0 rgba(0,229,255,0.1);
+            animation:cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(0.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+        .card-title { font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:4px; }
+        .card-subtitle { font-size:0.84rem;color:var(--text-muted);margin-bottom:24px; }
+
+        .alert { padding:12px 16px;border-radius:12px;font-size:0.85rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;animation:slideDown 0.3s ease; }
+        @keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+        .alert-danger { background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:#ff6b7a; }
+
+        .form-group { margin-bottom:18px; }
+        .form-label { display:block;font-size:0.78rem;font-weight:600;color:var(--text-muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.07em; }
+
+        .input-wrapper { position:relative; }
+        .input-icon { position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.9rem;pointer-events:none;transition:color 0.3s; }
+        .form-input {
+            width:100%;padding:13px 15px 13px 42px;
+            background:rgba(0,180,216,0.05);border:1px solid var(--border);
+            border-radius:12px;color:var(--text);font-size:0.94rem;
+            font-family:'Inter',sans-serif;outline:none;transition:all 0.3s;
+        }
+        .form-input::placeholder{color:rgba(180,220,255,0.25);}
+        .form-input:focus{border-color:var(--primary);background:rgba(0,229,255,0.07);box-shadow:0 0 0 3px rgba(0,229,255,0.12);}
+        .input-wrapper:focus-within .input-icon{color:var(--primary);}
+
+        .pw-toggle { position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.88rem;transition:color 0.3s;padding:4px; }
+        .pw-toggle:hover{color:var(--primary);}
+        .pw-input{padding-right:42px;}
+
+        /* Password strength */
+        .strength-row{margin-top:8px;display:flex;gap:4px;align-items:center;}
+        .strength-seg{flex:1;height:3px;border-radius:2px;background:rgba(0,229,255,0.1);transition:background 0.4s;}
+        .strength-label{font-size:0.75rem;color:var(--text-muted);min-width:50px;text-align:right;transition:color 0.3s;}
+
+        .btn-primary {
+            width:100%;padding:15px;
+            background:linear-gradient(135deg,#7c3aed,#ec4899);
+            color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;
+            font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.3s;
+            display:flex;align-items:center;justify-content:center;gap:10px;
+            position:relative;overflow:hidden;margin-top:8px;
+        }
+        .btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);transition:left 0.5s;}
+        .btn-primary:hover::before{left:100%;}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(167,139,250,0.5);}
+        .btn-primary:disabled{opacity:0.65;cursor:not-allowed;transform:none;}
+
+        .btn-loader{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+
+        .divider{text-align:center;margin:22px 0;position:relative;color:var(--text-muted);font-size:0.8rem;}
+        .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);}
+        .divider::before{left:0;} .divider::after{right:0;}
+
+        .login-link{text-align:center;color:var(--text-muted);font-size:0.88rem;}
+        .login-link a{color:var(--primary);font-weight:600;text-decoration:none;transition:all 0.3s;}
+        .login-link a:hover{color:var(--accent);text-shadow:0 0 12px rgba(0,229,255,0.4);}
+
+        .terms{text-align:center;margin-top:16px;font-size:0.75rem;color:rgba(180,220,255,0.2);}
+
+        .theme-toggle-fab{position:fixed;top:18px;right:18px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(0,180,216,0.08);border:1px solid var(--border);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;color:var(--text-muted);font-size:1rem;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+        .theme-toggle-fab:hover{background:rgba(0,229,255,0.15);border-color:rgba(0,229,255,0.4);color:var(--primary);transform:rotate(20deg) scale(1.05);}
+
+        [data-theme="light"] .auth-card{background:rgba(255,255,255,0.97);box-shadow:0 24px 80px rgba(124,58,237,0.15);}
+        [data-theme="light"] .card-title { color: #1e1035; }
+        [data-theme="light"] .card-subtitle { color: #4c1d95; }
+        [data-theme="light"] .form-label { color: #5b21b6; }
+        [data-theme="light"] .form-input{background:rgba(255,255,255,0.95);color:#1e1035;border-color:rgba(124,58,237,0.25);}
+        [data-theme="light"] .form-input::placeholder{color:rgba(30,16,53,0.35);}
+        [data-theme="light"] .form-input:focus{background:rgba(124,58,237,0.04);}
+        [data-theme="light"] .brand h1{background:linear-gradient(135deg,#3b0764,#7c3aed);-webkit-background-clip:text;background-clip:text;}
+        [data-theme="light"] .brand p { color: #5b21b6; }
+        [data-theme="light"] .login-link { color: #3b0764; }
+        [data-theme="light"] .divider { color: #6d28d9; }
+        [data-theme="light"] .terms{color:rgba(30,16,53,0.4);}
+        [data-theme="light"] .strength-seg{background:rgba(124,58,237,0.15);}
+
+        /* Select / dropdown */
+        .form-select {
+            width:100%;padding:13px 15px 13px 42px;
+            background:rgba(0,180,216,0.05);border:1px solid var(--border);
+            border-radius:12px;color:var(--text);font-size:0.94rem;
+            font-family:'Inter',sans-serif;outline:none;transition:all 0.3s;
+            appearance:none;-webkit-appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23a78bfa' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:right 14px center;
+        }
+        .form-select option{background:#1a0a2e;color:#f1e8ff;}
+        .form-select:focus{border-color:var(--primary);background-color:rgba(0,229,255,0.07);box-shadow:0 0 0 3px rgba(0,229,255,0.12);}
+        [data-theme="light"] .form-select{background-color:rgba(255,255,255,0.95);color:#1e1035;border-color:rgba(124,58,237,0.25);}
+        [data-theme="light"] .form-select option{background:#fff;color:#1e1035;}
+        [data-theme="light"] .form-select:focus{background-color:rgba(124,58,237,0.04);}
+    </style>
+</head>
+<body>
+    <button class="theme-toggle-fab" id="themeToggle" title="Toggle light/dark mode" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+
+    <div class="bg-scene">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
+    </div>
+    <div class="hex-grid"></div>
+    <div class="scanline"></div>
+    <canvas class="canvas-particles" id="particlesCanvas"></canvas>
+
+    <div class="auth-wrapper">
+        <div class="brand">
+            <div class="brand-icon"><i class="fas fa-brain"></i></div>
+            <h1>NeuroScan AI</h1>
+            <p>Create your medical professional account</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="card-title">Create Account</div>
+            <div class="card-subtitle">Join NeuroScan AI and start detecting brain tumors with AI</div>
+
+            {% if error %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form id="regForm" method="POST" onsubmit="return validateForm()">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" class="form-input"
+                               placeholder="dr_johndoe" required minlength="3">
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" class="form-input"
+                               placeholder="doctor@hospital.com" required autocomplete="email">
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-input pw-input"
+                               placeholder="Min. 6 characters" required minlength="6"
+                               oninput="updateStrength(this.value)">
+                        <i class="fas fa-lock input-icon"></i>
+                        <button type="button" class="pw-toggle" onclick="togglePw('password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="strength-row">
+                        <div class="strength-seg" id="s1"></div>
+                        <div class="strength-seg" id="s2"></div>
+                        <div class="strength-seg" id="s3"></div>
+                        <div class="strength-seg" id="s4"></div>
+                        <span class="strength-label" id="sLabel"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="security_question">Security Question</label>
+                    <div class="input-wrapper">
+                        <select id="security_question" name="security_question" class="form-select" required>
+                            <option value="" disabled selected>Select a security question…</option>
+                            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                            <option value="What city were you born in?">What city were you born in?</option>
+                            <option value="What was the name of your first school?">What was the name of your first school?</option>
+                            <option value="What is your favourite book?">What is your favourite book?</option>
+                            <option value="What is your childhood nickname?">What is your childhood nickname?</option>
+                            <option value="What is the name of the street you grew up on?">What is the name of the street you grew up on?</option>
+                        </select>
+                        <i class="fas fa-shield-alt input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="security_answer">Security Answer</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="security_answer" name="security_answer" class="form-input"
+                               placeholder="Your answer (case-insensitive)" required autocomplete="off">
+                        <i class="fas fa-key input-icon"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <div class="btn-loader" id="btnLoader"></div>
+                    <i class="fas fa-user-plus" id="btnIcon"></i>
+                    <span id="btnText">Create Account</span>
+                </button>
+            </form>
+
+            <div class="divider">or</div>
+            <div class="login-link">Already have an account? <a href="/login">Sign in</a></div>
+            <div class="terms">By creating an account, you agree to our Terms of Service</div>
+        </div>
+    </div>
+
+    <script>
+        const root = document.documentElement;
+        function applyTheme(theme) {
+            root.setAttribute('data-theme', theme);
+            const icon = document.getElementById('themeIcon');
+            const btn  = document.getElementById('themeToggle');
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+            localStorage.setItem('neuroscan-theme', theme);
+        }
+        function toggleTheme() {
+            applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        }
+        applyTheme(localStorage.getItem('neuroscan-theme') || 'dark');
+
+        // Neural particles
+        const canvas = document.getElementById('particlesCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H, nodes = [];
+        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+        for (let i = 0; i < 40; i++) nodes.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4, r:Math.random()*2+1, pulse:Math.random()*Math.PI*2 });
+        function drawP() {
+            ctx.clearRect(0,0,W,H);
+            const isDark = root.getAttribute('data-theme') !== 'light';
+            nodes.forEach(n => {
+                n.x+=n.vx; n.y+=n.vy; n.pulse+=0.03;
+                if(n.x<0||n.x>W) n.vx*=-1; if(n.y<0||n.y>H) n.vy*=-1;
+                nodes.forEach(m => {
+                    const d = Math.hypot(n.x-m.x, n.y-m.y);
+                    if(d<120){ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(m.x,m.y);ctx.strokeStyle=(isDark?'rgba(0,229,255,':'rgba(0,102,255,')+(0.15*(1-d/120)).toFixed(3)+')';ctx.lineWidth=0.6;ctx.stroke();}
+                });
+                ctx.beginPath(); ctx.arc(n.x,n.y,n.r*(0.7+0.3*Math.sin(n.pulse)),0,Math.PI*2);
+                ctx.fillStyle = isDark?'#00e5ff':'#0066ff'; ctx.globalAlpha=isDark?0.55:0.3; ctx.fill(); ctx.globalAlpha=1;
+            });
+            requestAnimationFrame(drawP);
+        }
+        drawP();
+
+        function togglePw(id, btn) {
+            const input = document.getElementById(id);
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            btn.querySelector('i').className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
+
+        const colors = ['#ff4757','#ffa502','#eccc68','#2ed573'];
+        const labels = ['Weak','Fair','Good','Strong'];
+        function updateStrength(pw) {
+            let score = 0;
+            if (pw.length >= 6) score++;
+            if (pw.length >= 10) score++;
+            if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            score = Math.min(score, 4);
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('s'+i).style.background = i <= score ? colors[score-1] : 'rgba(0,229,255,0.1)';
+            }
+            const lbl = document.getElementById('sLabel');
+            lbl.textContent = pw.length > 0 ? labels[score-1] || '' : '';
+            lbl.style.color = pw.length > 0 ? colors[score-1] : 'var(--text-muted)';
+        }
+
+        function validateForm() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const secQ = document.getElementById('security_question').value;
+            const secA = document.getElementById('security_answer').value.trim();
+            if (username.length < 3) { showErr('Username must be at least 3 characters'); return false; }
+            if (!email.includes('@')) { showErr('Please enter a valid email'); return false; }
+            if (password.length < 6) { showErr('Password must be at least 6 characters'); return false; }
+            if (!secQ) { showErr('Please select a security question'); return false; }
+            if (secA.length < 2) { showErr('Please provide a security answer (at least 2 characters)'); return false; }
+            document.getElementById('btnLoader').style.display = 'block';
+            document.getElementById('btnIcon').style.display = 'none';
+            document.getElementById('btnText').textContent = 'Creating account…';
+            document.getElementById('submitBtn').disabled = true;
+            return true;
+        }
+
+        function showErr(msg) {
+            let alert = document.querySelector('.alert');
+            if (!alert) {
+                alert = document.createElement('div');
+                alert.className = 'alert alert-danger';
+                document.querySelector('form').before(alert);
+            }
+            alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${msg}`;
+            alert.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

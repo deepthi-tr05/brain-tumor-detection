@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroScan AI – Brain Tumor Detection System</title>
+  <meta name="description" content="AI-powered brain tumor detection from MRI scans. Upload your scan, get instant analysis and generate detailed medical reports." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="15" stroke="url(#g1)" stroke-width="2"/>
+            <path d="M10 16 C10 10 22 10 22 16 C22 22 10 22 10 16Z" stroke="url(#g1)" stroke-width="1.5" fill="none"/>
+            <circle cx="16" cy="16" r="3" fill="url(#g1)"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#06b6d4"/>
+                <stop offset="1" stop-color="#a855f7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <span class="logo-name">NeuroScan <span class="logo-ai">AI</span></span>
+          <span class="logo-tagline">Brain Tumor Detection System</span>
+        </div>
+      </div>
+      <nav class="nav-pills">
+        <a href="#upload-section" class="nav-pill active" id="nav-scan">MRI Analysis</a>
+        <a href="#patient-section" class="nav-pill" id="nav-patient">Patient Details</a>
+        <a href="#report-section" class="nav-pill" id="nav-report">Report</a>
+      </nav>
+      <div class="header-actions">
+        <div class="header-badge">
+          <span class="badge-dot"></span>AI Model Online
+        </div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle dark/light mode">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <h1 class="hero-title">
+      AI-Powered <span class="gradient-text">Brain Tumor</span><br/>Detection &amp; Analysis
+    </h1>
+    <p class="hero-sub">Upload an MRI scan image — our deep learning model will classify the tumor type, severity level, and generate a comprehensive medical report.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-val">4</span><span class="stat-lbl">Tumor Classes</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-val">98.2%</span><span class="stat-lbl">Model Accuracy</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-val">&lt;3s</span><span class="stat-lbl">Analysis Time</span></div>
+    </div>
+  </section>
+
+  <main class="main-content">
+
+    <!-- ── STEP 1: MRI UPLOAD ── -->
+    <section class="card" id="upload-section">
+      <div class="card-header">
+        <div class="step-badge">Step 1</div>
+        <h2 class="card-title">Upload MRI Scan</h2>
+        <p class="card-desc">Upload a brain MRI image (JPG, PNG, DICOM supported)</p>
+      </div>
+
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="mriInput" accept="image/*" hidden />
+        <div class="upload-content" id="uploadContent">
+          <div class="upload-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect x="4" y="4" width="40" height="40" rx="12" stroke="url(#ug)" stroke-width="2" stroke-dasharray="6 4"/>
+              <path d="M24 32V16M17 23l7-7 7 7" stroke="url(#ug)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="ug" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#06b6d4"/><stop offset="1" stop-color="#a855f7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <p class="upload-title">Drag &amp; drop MRI image here</p>
+          <p class="upload-sub">or click to browse files</p>
+          <button class="btn-outline" onclick="document.getElementById('mriInput').click()">Browse File</button>
+          <p class="upload-hint">Supported: JPG, PNG, BMP, WEBP · Max 20MB</p>
+        </div>
+        <div class="upload-preview" id="uploadPreview" style="display:none">
+          <img id="previewImg" src="" alt="MRI Preview" />
+          <div class="preview-info">
+            <span id="previewName" class="preview-filename"></span>
+            <button class="btn-ghost" id="changeFile">Change File</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Analysis Result -->
+      <div class="analysis-panel" id="analysisPanel" style="display:none">
+        <div class="analysis-header">
+          <div class="pulse-ring"></div>
+          <span id="analysisStatus">Analyzing MRI scan…</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="result-grid" id="resultGrid" style="display:none">
+          <div class="result-card tumor-name-card">
+            <span class="result-label">Detected Tumor</span>
+            <span class="result-value" id="tumorName">—</span>
+          </div>
+          <div class="result-card">
+            <span class="result-label">Severity Level</span>
+            <div class="severity-display">
+              <span class="result-value" id="tumorLevel">—</span>
+              <div class="severity-bar-wrap">
+                <div class="severity-bar" id="severityBar"></div>
+              </div>
+            </div>
+          </div>
+          <div class="result-card">
+            <span class="result-label">Confidence Score</span>
+            <span class="result-value confidence" id="confidenceScore">—</span>
+          </div>
+          <div class="result-card full-width">
+            <span class="result-label">AI Observations</span>
+            <p class="result-text" id="aiObservations">—</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="analyzeBtn" disabled>
+        <span class="btn-icon">🧠</span> Analyze MRI Scan
+      </button>
+    </section>
+
+    <!-- ── STEP 2: PATIENT DETAILS ── -->
+    <section class="card" id="patient-section">
+      <div class="card-header">
+        <div class="step-badge">Step 2</div>
+        <h2 class="card-title">Patient Information</h2>
+        <p class="card-desc">Fill in patient details to include in the medical report</p>
+      </div>
+
+      <form class="patient-form" id="patientForm" autocomplete="off">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="patientName">Full Name <span class="required">*</span></label>
+            <input type="text" id="patientName" placeholder="e.g. Rajesh Kumar" required />
+          </div>
+          <div class="form-group">
+            <label for="patientId">Patient ID <span class="required">*</span></label>
+            <input type="text" id="patientId" placeholder="e.g. PT-2024-001" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="patientAge">Age <span class="required">*</span></label>
+            <input type="number" id="patientAge" placeholder="e.g. 45" min="1" max="120" required />
+          </div>
+          <div class="form-group">
+            <label for="patientGender">Gender <span class="required">*</span></label>
+            <select id="patientGender" required>
+              <option value="">Select Gender</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="patientDOB">Date of Birth</label>
+            <input type="date" id="patientDOB" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="patientPhone">Phone Number</label>
+            <input type="tel" id="patientPhone" placeholder="e.g. +91 98765 43210" />
+          </div>
+          <div class="form-group">
+            <label for="patientEmail">Email Address</label>
+            <input type="email" id="patientEmail" placeholder="e.g. patient@email.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="patientAddress">Address</label>
+            <input type="text" id="patientAddress" placeholder="Street, City, State, PIN" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="referringDoctor">Referring Doctor</label>
+            <input type="text" id="referringDoctor" placeholder="Dr. Name" />
+          </div>
+          <div class="form-group">
+            <label for="hospital">Hospital / Clinic</label>
+            <input type="text" id="hospital" placeholder="Hospital Name" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="symptoms">Clinical Symptoms / Notes</label>
+            <textarea id="symptoms" rows="3" placeholder="Describe symptoms, medical history, or clinical notes…"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">
+            <span class="btn-icon">📋</span> Save Patient Details
+          </button>
+        </div>
+      </form>
+      <div class="form-saved" id="formSaved" style="display:none">
+        <span class="saved-icon">✅</span> Patient details saved successfully!
+      </div>
+    </section>
+
+    <!-- ── STEP 3: REPORT ── -->
+    <section class="card" id="report-section">
+      <div class="card-header">
+        <div class="step-badge">Step 3</div>
+        <h2 class="card-title">Generate Report</h2>
+        <p class="card-desc">Generate and download a complete AI diagnostic report</p>
+      </div>
+
+      <div class="report-checklist" id="reportChecklist">
+        <div class="check-item" id="chk-scan">
+          <span class="chk-icon" id="chk-scan-icon">○</span>
+          <span>MRI scan analyzed by AI</span>
+        </div>
+        <div class="check-item" id="chk-patient">
+          <span class="chk-icon" id="chk-patient-icon">○</span>
+          <span>Patient details filled</span>
+        </div>
+      </div>
+
+      <button class="btn-primary btn-lg" id="generateReportBtn" disabled>
+        <span class="btn-icon">📄</span> Generate &amp; Download Report
+      </button>
+    </section>
+
+  </main>
+
+  <!-- ── REPORT MODAL / PREVIEW ── -->
+  <div class="modal-overlay" id="reportModal" style="display:none">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Medical Report Preview</h3>
+        <button class="modal-close" id="closeModal">✕</button>
+      </div>
+      <div class="modal-body" id="reportPreview">
+        <!-- Filled by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="closeModalBtn">Close</button>
+        <button class="btn-primary" id="downloadReportBtn">
+          <span class="btn-icon">⬇️</span> Download PDF Report
+        </button>
+        <button class="btn-secondary" id="printReportBtn">
+          <span class="btn-icon">🖨️</span> Print Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOAST ── -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

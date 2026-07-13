@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile – NeuroScan AI</title>
+    <meta name="description" content="Doctor profile page on NeuroScan AI – view your stats and attended patient records">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root,html[data-theme="dark"]{--primary:#00e5ff;--primary-light:rgba(0,229,255,0.14);--primary-dark:#0066ff;--accent:#00b4d8;--success:#00e676;--success-light:rgba(0,230,118,0.12);--danger:#ff4757;--danger-light:rgba(255,71,87,0.12);--warning:#ffa502;--warning-light:rgba(255,165,2,0.12);--bg-deep:#020b18;--bg-surface:#041225;--bg-card:rgba(0,180,216,0.042);--bg-card-hover:rgba(0,229,255,0.07);--border:rgba(0,229,255,0.1);--border-accent:rgba(0,229,255,0.28);--text:#cce8ff;--text-muted:rgba(180,220,255,0.52);--nav-bg:rgba(2,11,24,0.92);}
+        html[data-theme="light"]{--primary:#0066ff;--primary-light:rgba(0,102,255,0.1);--primary-dark:#0040cc;--accent:#00b4d8;--success:#00b248;--success-light:rgba(0,178,72,0.1);--danger:#e53935;--danger-light:rgba(229,57,53,0.1);--warning:#f57c00;--warning-light:rgba(245,124,0,0.1);--bg-deep:#e8f4fd;--bg-surface:#ffffff;--bg-card:rgba(255,255,255,0.88);--bg-card-hover:rgba(255,255,255,0.98);--border:rgba(0,102,255,0.14);--border-accent:rgba(0,102,255,0.32);--text:#0a1628;--text-muted:rgba(10,22,40,0.58);--nav-bg:rgba(232,244,253,0.94);}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',sans-serif;background:var(--bg-deep);color:var(--text);min-height:100vh;}
+
+        /* NAVBAR */
+        .navbar{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;}
+        .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
+        .nav-brand-icon{width:40px;height:40px;background:linear-gradient(135deg,#0066ff,#00e5ff);border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,229,255,0.4);animation:brandPulse 3s ease-in-out infinite;}
+        @keyframes brandPulse{0%,100%{box-shadow:0 0 20px rgba(0,229,255,0.4);}50%{box-shadow:0 0 30px rgba(0,180,216,0.55);}}
+        .nav-brand-icon i{font-size:18px;color:white;}
+        .nav-brand-text{font-size:1.15rem;font-weight:800;background:linear-gradient(135deg,white,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .nav-right{display:flex;align-items:center;gap:10px;}
+        .nav-chip{display:flex;align-items:center;gap:8px;padding:7px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:50px;font-size:0.85rem;color:var(--text-muted);cursor:pointer;transition:all 0.25s;text-decoration:none;}
+        .nav-chip:hover{background:var(--bg-card-hover);border-color:var(--border-accent);color:var(--text);}
+        .theme-toggle{width:40px;height:40px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:1rem;transition:all 0.3s;}
+        .theme-toggle:hover{background:var(--primary-light);border-color:var(--border-accent);color:var(--primary);transform:rotate(20deg);}
+
+        /* BG */
+        .bg-scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse at 10% 45%,rgba(0,150,199,0.12) 0%,transparent 55%),radial-gradient(ellipse at 85% 15%,rgba(0,102,255,0.1) 0%,transparent 45%),var(--bg-deep);}
+        .orb{position:absolute;border-radius:50%;filter:blur(100px);animation:orbFloat 20s ease-in-out infinite;}
+        .orb-1{width:700px;height:700px;background:radial-gradient(circle,rgba(0,150,199,0.28),transparent 70%);top:-250px;left:-120px;}
+        .orb-2{width:600px;height:600px;background:radial-gradient(circle,rgba(0,229,255,0.22),transparent 70%);bottom:-150px;right:-120px;animation-delay:7s;}
+        @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}25%{transform:translate(28px,-26px) scale(1.04);}50%{transform:translate(-18px,18px) scale(0.97);}75%{transform:translate(12px,22px) scale(1.02);}}
+        html[data-theme="light"] .orb{opacity:0.2;}
+
+        /* PAGE */
+        .page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:40px clamp(20px,5%,60px) 80px;}
+        .grid-2{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;}
+        @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+
+        /* PROFILE CARD */
+        .profile-card{background:var(--bg-card);border:1px solid var(--border);border-radius:24px;overflow:hidden;position:sticky;top:88px;}
+        .profile-card-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:28px;text-align:center;}
+        .avatar{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);border:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:2rem;color:white;font-weight:900;box-shadow:0 0 30px rgba(0,0,0,0.3);}
+        .profile-name{font-size:1.2rem;font-weight:800;color:white;margin-bottom:3px;}
+        .profile-email{font-size:0.82rem;color:rgba(255,255,255,0.7);}
+        .profile-role{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:rgba(255,255,255,0.15);border-radius:20px;padding:5px 14px;font-size:0.78rem;color:white;font-weight:600;}
+        .profile-card-body{padding:20px;}
+
+        .pstat{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+        .pstat:last-child{border-bottom:none;}
+        .pstat-label{font-size:0.82rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;}
+        .pstat-val{font-size:0.95rem;font-weight:800;}
+
+        .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+        .badge-primary{background:var(--primary-light);color:var(--primary);border:1px solid var(--border-accent);}
+
+        /* ACTION LINKS */
+        .action-links{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+        .action-link{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;color:var(--text-muted);font-size:0.85rem;font-weight:600;text-decoration:none;transition:all 0.25s;cursor:pointer;}
+        .action-link:hover{background:var(--bg-card-hover);border-color:var(--border-accent);color:var(--text);}
+        .action-link i{width:16px;text-align:center;}
+        .action-link.danger:hover{background:var(--danger-light);border-color:rgba(255,71,87,0.3);color:var(--danger);}
+
+        /* MAIN CONTENT */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;}
+        .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;text-align:center;transition:all 0.3s;}
+        .stat-card:hover{border-color:var(--border-accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,229,255,0.07);}
+        .stat-val{font-size:2rem;font-weight:900;margin-bottom:4px;}
+        .stat-lbl{font-size:0.73rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;}
+
+        .section-title{font-size:0.85rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+        .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+        /* PATIENTS TABLE */
+        .table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+        .ptable{width:100%;border-collapse:collapse;}
+        .ptable th{padding:12px 16px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;background:rgba(0,0,0,0.12);border-bottom:1px solid var(--border);}
+        .ptable td{padding:12px 16px;font-size:0.85rem;color:var(--text);border-bottom:1px solid var(--border);}
+        .ptable tr:last-child td{border-bottom:none;}
+        .ptable tr:hover td{background:var(--bg-card-hover);}
+
+        .tumor-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+        .badge-no-tumor{background:var(--success-light);color:var(--success);border:1px solid rgba(0,230,118,0.3);}
+        .badge-glioma{background:var(--danger-light);color:var(--danger);border:1px solid rgba(255,71,87,0.3);}
+        .badge-meningioma{background:var(--warning-light);color:var(--warning);border:1px solid rgba(255,165,2,0.3);}
+        .badge-pituitary{background:var(--primary-light);color:var(--primary);border:1px solid var(--border-accent);}
+
+        .stage-chip{font-size:0.7rem;font-weight:700;padding:2px 9px;border-radius:20px;}
+        .stage-Early{background:var(--success-light);color:var(--success);}
+        .stage-Intermediate{background:var(--warning-light);color:var(--warning);}
+        .stage-Advanced{background:var(--danger-light);color:var(--danger);}
+
+        .view-btn{padding:4px 12px;border-radius:20px;background:var(--primary-light);border:1px solid var(--border-accent);color:var(--primary);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.25s;font-family:'Inter',sans-serif;}
+        .view-btn:hover{background:var(--primary);color:white;}
+
+        .empty-msg{text-align:center;padding:48px;color:var(--text-muted);}
+        .empty-msg i{font-size:2.5rem;display:block;margin-bottom:12px;opacity:0.4;}
+
+        /* MODAL */
+        .modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
+        .modal-overlay.open{display:flex;}
+        .modal-box{background:var(--bg-surface);border:1px solid var(--border);border-radius:24px;width:100%;max-width:680px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,0.7);animation:modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+        @keyframes modalIn{from{opacity:0;transform:scale(0.88);}to{opacity:1;transform:scale(1);}}
+        .modal-head{background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+        .modal-head h2{font-size:1.05rem;font-weight:700;color:white;display:flex;align-items:center;gap:10px;}
+        .modal-close{background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-size:1rem;}
+        .modal-close:hover{background:rgba(255,255,255,0.3);transform:rotate(90deg);}
+        .modal-body{padding:24px;overflow-y:auto;flex:1;}
+
+        .msec-title{font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;display:flex;align-items:center;gap:8px;margin:16px 0 10px;}
+        .msec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+        .msec-title:first-child{margin-top:0;}
+        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .info-chip{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;}
+        .info-chip .lbl{font-size:0.69rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+        .info-chip .val{font-size:0.87rem;font-weight:700;color:var(--text);}
+        .med-approach{background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.18);border-radius:10px;padding:11px 13px;margin-bottom:10px;}
+        .med-approach .lbl{font-size:0.69rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;}
+        .med-approach .val{font-size:0.87rem;font-weight:700;color:var(--danger);}
+        .med-item{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:7px;}
+        .med-item-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+        .med-item-name{font-size:0.85rem;font-weight:700;color:var(--text);}
+        .med-item-dose{font-size:0.7rem;color:var(--text-muted);background:var(--warning-light);padding:2px 9px;border-radius:20px;margin-left:auto;}
+        .med-item-purpose{font-size:0.77rem;color:var(--text-muted);padding-left:20px;}
+        .med-note{background:var(--warning-light);border:1px solid rgba(255,165,2,0.25);border-radius:8px;padding:9px 11px;font-size:0.79rem;color:var(--text-muted);margin-top:8px;}
+        .med-followup{background:var(--primary-light);border:1px solid var(--border-accent);border-radius:8px;padding:9px 11px;font-size:0.79rem;color:var(--text-muted);margin-top:8px;}
+        .prec-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;font-size:0.8rem;color:var(--text);margin-bottom:5px;}
+        .prec-item.urgent{border-color:rgba(255,71,87,0.3);background:var(--danger-light);}
+        .prec-item i{color:var(--success);margin-top:1px;flex-shrink:0;}
+        .prec-item.urgent i{color:var(--danger);}
+
+        .spin{animation:spin 1s linear infinite;display:inline-block;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+
+        .search-bar{padding:9px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:50px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.85rem;outline:none;transition:all 0.3s;min-width:220px;}
+        .search-bar:focus{border-color:var(--border-accent);box-shadow:0 0 0 2px rgba(0,229,255,0.12);}
+    </style>
+</head>
+<body>
+<div class="bg-scene"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <div class="nav-brand-icon"><i class="fas fa-brain"></i></div>
+        <span class="nav-brand-text">NeuroScan AI</span>
+    </a>
+    <div class="nav-right">
+        <a href="/" class="nav-chip"><i class="fas fa-microscope"></i><span>Scan</span></a>
+        <a href="/history" class="nav-chip"><i class="fas fa-history"></i><span>History</span></a>
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+        <a href="/logout" class="nav-chip"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    </div>
+</nav>
+
+<div class="page">
+    <div class="grid-2">
+
+        <!-- ─── LEFT: Profile Card ─── -->
+        <div>
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <div class="avatar" id="avatarInitial">?</div>
+                    <div class="profile-name" id="profileName">Loading…</div>
+                    <div class="profile-email" id="profileEmail">–</div>
+                    <div class="profile-role"><i class="fas fa-user-md"></i> <span id="profileRole">Medical Professional</span></div>
+                </div>
+                <div class="profile-card-body">
+                    <div class="pstat">
+                        <div class="pstat-label"><i class="fas fa-folder-open" style="color:var(--primary);"></i> Total Scans</div>
+                        <div class="pstat-val" id="psTotal" style="color:var(--primary);">–</div>
+                    </div>
+                    <div class="pstat">
+                        <div class="pstat-label"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> Tumor Cases</div>
+                        <div class="pstat-val" id="psTumor" style="color:var(--danger);">–</div>
+                    </div>
+                    <div class="pstat">
+                        <div class="pstat-label"><i class="fas fa-check-circle" style="color:var(--success);"></i> Clear Scans</div>
+                        <div class="pstat-val" id="psClear" style="color:var(--success);">–</div>
+                    </div>
+                    <div class="pstat">
+                        <div class="pstat-label"><i class="fas fa-dna" style="color:var(--warning);"></i> Most Common</div>
+                        <div class="pstat-val" id="psMost" style="color:var(--warning);font-size:0.75rem;max-width:120px;text-align:right;">–</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-links" style="margin-top:14px;">
+                <a href="/" class="action-link"><i class="fas fa-microscope"></i> New MRI Scan</a>
+                <a href="/history" class="action-link"><i class="fas fa-history"></i> View Full History</a>
+                <a href="/forgot-password" class="action-link"><i class="fas fa-key"></i> Change Password</a>
+                <a href="/logout" class="action-link danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+
+        <!-- ─── RIGHT: Main Content ─── -->
+        <div>
+            <!-- Stats -->
+            <div class="section-title"><i class="fas fa-chart-bar"></i> Scan Statistics</div>
+            <div class="stats-grid" style="margin-bottom:32px;">
+                <div class="stat-card"><div class="stat-val" id="s1" style="color:var(--primary);">–</div><div class="stat-lbl">Total Scans</div></div>
+                <div class="stat-card"><div class="stat-val" id="s2" style="color:var(--danger);">–</div><div class="stat-lbl">Tumor Detected</div></div>
+                <div class="stat-card"><div class="stat-val" id="s3" style="color:var(--success);">–</div><div class="stat-lbl">Clear Scans</div></div>
+                <div class="stat-card"><div class="stat-val" id="s4" style="color:var(--warning);font-size:1.1rem;">–</div><div class="stat-lbl">Detection Rate</div></div>
+            </div>
+
+            <!-- Patients Table -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <div class="section-title" style="margin-bottom:0;flex:1;"><i class="fas fa-users"></i> Attended Patients</div>
+                <input type="text" class="search-bar" id="searchBar" placeholder="🔍 Search patient…" oninput="filterPatients()">
+            </div>
+
+            <div class="table-wrap">
+                <table class="ptable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Age/Gender</th>
+                            <th>Diagnosis</th>
+                            <th>Stage</th>
+                            <th>Date</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsBody">
+                        <tr><td colspan="7" class="empty-msg"><i class="fas fa-spinner spin"></i> Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" onclick="closeModalOverlay(event)">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h2><i class="fas fa-file-medical"></i> Patient Scan Detail</h2>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <div style="text-align:center;padding:40px;">Loading…</div>
+        </div>
+    </div>
+</div>
+
+<script>
+const _root = document.documentElement;
+function applyTheme(t){_root.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fas fa-sun':'fas fa-moon';localStorage.setItem('neuroscan-theme',t);}
+function toggleTheme(){applyTheme(_root.getAttribute('data-theme')==='dark'?'light':'dark');}
+applyTheme(localStorage.getItem('neuroscan-theme')||'dark');
+
+let allScans = [];
+
+function tumorBadge(type){
+    if(type==='No Tumor') return `<span class="tumor-badge badge-no-tumor"><i class="fas fa-check-circle"></i>${type}</span>`;
+    if(type.includes('Glioma')) return `<span class="tumor-badge badge-glioma"><i class="fas fa-exclamation-triangle"></i>${type}</span>`;
+    if(type.includes('Meningioma')) return `<span class="tumor-badge badge-meningioma"><i class="fas fa-exclamation-circle"></i>${type}</span>`;
+    return `<span class="tumor-badge badge-pituitary"><i class="fas fa-circle-dot"></i>${type}</span>`;
+}
+function stageBadge(stage){
+    if(!stage) return '–';
+    const cls=stage.includes('Early')?'stage-Early':stage.includes('Intermediate')?'stage-Intermediate':'stage-Advanced';
+    return `<span class="stage-chip ${cls}">${stage.replace(' Stage','')}</span>`;
+}
+
+function filterPatients(){
+    const q = document.getElementById('searchBar').value.toLowerCase();
+    const rows = q ? allScans.filter(r=>(r.patient_name||'').toLowerCase().includes(q)) : allScans;
+    renderPatients(rows);
+}
+
+function renderPatients(rows){
+    const body = document.getElementById('patientsBody');
+    if(!rows.length){
+        body.innerHTML=`<tr><td colspan="7"><div class="empty-msg"><i class="fas fa-users"></i><p>No patient records found.</p></div></td></tr>`;
+        return;
+    }
+    body.innerHTML = rows.map((r,i)=>`
+        <tr>
+            <td style="color:var(--text-muted);font-weight:600;">${rows.length-i}</td>
+            <td>
+                <strong>${r.patient_name||'Unknown'}</strong>
+                ${r.patient_id?`<br><span style="font-size:0.7rem;color:var(--text-muted);">ID: ${r.patient_id}</span>`:''}
+            </td>
+            <td>${r.patient_age||'–'} / ${r.patient_gender||'–'}</td>
+            <td>${tumorBadge(r.tumor_type)}</td>
+            <td>${stageBadge(r.stage)}</td>
+            <td style="color:var(--text-muted);font-size:0.8rem;">${r.scan_date||'–'}</td>
+            <td><button class="view-btn" onclick="openDetail(${r.id})"><i class="fas fa-eye"></i> View</button></td>
+        </tr>`).join('');
+}
+
+async function loadProfile(){
+    try{
+        const r = await fetch('/api/profile-stats');
+        const d = await r.json();
+        if(!r.ok) throw new Error(d.error||'Failed');
+
+        // Profile card
+        const initial = (d.username||'?')[0].toUpperCase();
+        document.getElementById('avatarInitial').textContent = initial;
+        document.getElementById('profileName').textContent = d.username;
+        document.getElementById('profileEmail').textContent = d.email || 'No email on record';
+
+        // Stats
+        const rate = d.total > 0 ? ((d.tumor/d.total)*100).toFixed(0)+'%' : '–';
+        document.getElementById('psTotal').textContent = d.total;
+        document.getElementById('psTumor').textContent = d.tumor;
+        document.getElementById('psClear').textContent = d.clear;
+        document.getElementById('psMost').textContent  = d.most_common || 'N/A';
+        document.getElementById('s1').textContent = d.total;
+        document.getElementById('s2').textContent = d.tumor;
+        document.getElementById('s3').textContent = d.clear;
+        document.getElementById('s4').textContent = rate;
+
+        // Table
+        allScans = d.scans || [];
+        renderPatients(allScans);
+    }catch(e){
+        document.getElementById('patientsBody').innerHTML=`<tr><td colspan="7" style="color:var(--danger);text-align:center;padding:30px;">${e.message}</td></tr>`;
+    }
+}
+
+// MODAL
+function openModal(){document.getElementById('detailModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(){document.getElementById('detailModal').classList.remove('open');document.body.style.overflow='';}
+function closeModalOverlay(e){if(e.target===document.getElementById('detailModal'))closeModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+async function openDetail(id){
+    openModal();
+    document.getElementById('modalBody').innerHTML='<div style="text-align:center;padding:40px;"><i class="fas fa-spinner spin" style="font-size:1.5rem;color:var(--primary);"></i></div>';
+    try{
+        const r = await fetch(`/api/scan-detail/${id}`);
+        const d = await r.json();
+        if(!r.ok) throw new Error(d.error||'Failed');
+        renderDetail(d);
+    }catch(e){
+        document.getElementById('modalBody').innerHTML=`<div style="color:var(--danger);text-align:center;padding:30px;">${e.message}</div>`;
+    }
+}
+
+function renderDetail(d){
+    const isNoTumor = d.tumor_type==='No Tumor';
+    const sc = !d.stage?'var(--text-muted)':d.stage.includes('Early')?'var(--success)':d.stage.includes('Intermediate')?'var(--warning)':'var(--danger)';
+
+    let html = `
+    <div class="msec-title"><i class="fas fa-user-md"></i> Patient Information</div>
+    <div class="info-grid">
+        <div class="info-chip"><div class="lbl">Full Name</div><div class="val">${d.patient_name||'Unknown'}</div></div>
+        <div class="info-chip"><div class="lbl">Patient ID</div><div class="val">${d.patient_id||'–'}</div></div>
+        <div class="info-chip"><div class="lbl">Age</div><div class="val">${d.patient_age||'–'}</div></div>
+        <div class="info-chip"><div class="lbl">Gender</div><div class="val">${d.patient_gender||'–'}</div></div>
+        <div class="info-chip"><div class="lbl">Scan Date</div><div class="val">${d.scan_date||'–'}</div></div>
+        <div class="info-chip"><div class="lbl">Location</div><div class="val">${d.location||'–'}</div></div>
+    </div>
+    <div class="msec-title" style="margin-top:20px;"><i class="fas fa-stethoscope"></i> Diagnosis</div>
+    <div style="background:${isNoTumor?'var(--success-light)':'var(--danger-light)'};border:1px solid ${isNoTumor?'rgba(0,230,118,0.3)':'rgba(255,71,87,0.3)'};border-radius:12px;padding:16px;text-align:center;margin-bottom:10px;">
+        <div style="font-size:1.5rem;margin-bottom:5px;">${isNoTumor?'✅':'⚠️'}</div>
+        <div style="font-size:1.05rem;font-weight:900;color:${isNoTumor?'var(--success)':'var(--danger)'};">${d.tumor_type}</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Confidence: <strong style="color:var(--text);">${d.confidence?d.confidence.toFixed(1)+'%':'–'}</strong></div>
+    </div>`;
+
+    if(!isNoTumor && d.stage){
+        html+=`<div class="info-grid" style="margin-top:10px;">
+            <div class="info-chip"><div class="lbl">Stage</div><div class="val" style="color:${sc};">${d.stage}</div></div>
+            <div class="info-chip"><div class="lbl">Area Affected</div><div class="val">${d.area_pct?d.area_pct.toFixed(1)+'%':'–'}</div></div>
+        </div>`;
+        if(d.stage_description) html+=`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-top:10px;font-size:0.8rem;color:var(--text-muted);line-height:1.6;"><i class="fas fa-info-circle" style="color:var(--primary);margin-right:6px;"></i>${d.stage_description}</div>`;
+    }
+
+    if(d.precautions && d.precautions.length){
+        html+=`<div class="msec-title" style="margin-top:18px;"><i class="fas fa-shield-alt"></i> Precautions</div>`;
+        html+=d.precautions.map(p=>{
+            const u=p.toUpperCase().includes('IMMEDIATE')||p.toUpperCase().includes('HIGH CONFIDENCE');
+            return `<div class="prec-item ${u?'urgent':''}"><i class="fas ${u?'fa-exclamation-triangle':'fa-check-circle'}"></i><span>${p}</span></div>`;
+        }).join('');
+    }
+
+    if(d.medication && d.medication.approach){
+        const med=d.medication;
+        html+=`<div class="msec-title" style="margin-top:18px;"><i class="fas fa-pills"></i> Prescription & Medication</div>
+        <div class="med-approach"><div class="lbl">Treatment Approach</div><div class="val">${med.approach}</div></div>`;
+        if(med.medications) html+=med.medications.map(m=>`
+            <div class="med-item">
+                <div class="med-item-header"><i class="fas fa-capsules" style="color:var(--warning);font-size:0.82rem;"></i>
+                    <span class="med-item-name">${m.name}</span><span class="med-item-dose">${m.dose}</span>
+                </div>
+                <div class="med-item-purpose">${m.purpose}</div>
+            </div>`).join('');
+        if(med.follow_up) html+=`<div class="med-followup"><i class="fas fa-calendar-check" style="color:var(--primary);margin-right:6px;"></i><strong>Follow-up:</strong> ${med.follow_up}</div>`;
+        if(med.note) html+=`<div class="med-note"><i class="fas fa-triangle-exclamation" style="color:var(--warning);margin-right:6px;"></i>${med.note}</div>`;
+    }
+
+    document.getElementById('modalBody').innerHTML = html;
+}
+
+loadProfile();
+</script>
+</body>
+</html>

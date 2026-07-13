@@ -1,0 +1,2234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroScan AI – Brain Tumor Detection</title>
+    <meta name="description" content="AI-powered MRI brain tumor detection with stage analysis, heatmap visualization, and personalized medical precautions.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* ===== DESIGN SYSTEM ===== */
+        :root, html[data-theme="dark"] {
+            --primary: #00e5ff;
+            --primary-light: rgba(0,229,255,0.14);
+            --primary-dark: #0066ff;
+            --accent: #00b4d8;
+            --accent-light: rgba(0,180,216,0.12);
+            --success: #00e676;
+            --success-light: rgba(0,230,118,0.12);
+            --danger: #ff4757;
+            --danger-light: rgba(255,71,87,0.12);
+            --warning: #ffa502;
+            --warning-light: rgba(255,165,2,0.12);
+            --bg-deep: #020b18;
+            --bg-surface: #041225;
+            --bg-card: rgba(0,180,216,0.042);
+            --bg-card-hover: rgba(0,229,255,0.07);
+            --border: rgba(0,229,255,0.1);
+            --border-accent: rgba(0,229,255,0.28);
+            --text: #cce8ff;
+            --text-muted: rgba(180,220,255,0.52);
+            --text-dim: rgba(180,220,255,0.3);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --nav-bg: rgba(2,11,24,0.92);
+            --orb-opacity: 1;
+            --select-bg: #1a1a2e;
+            --select-text: #cce8ff;
+        }
+        html[data-theme="light"] {
+            --primary: #0066ff;
+            --primary-light: rgba(0,102,255,0.1);
+            --primary-dark: #0040cc;
+            --accent: #00b4d8;
+            --accent-light: rgba(0,180,216,0.1);
+            --success: #00b248;
+            --success-light: rgba(0,178,72,0.1);
+            --danger: #e53935;
+            --danger-light: rgba(229,57,53,0.1);
+            --warning: #f57c00;
+            --warning-light: rgba(245,124,0,0.1);
+            --bg-deep: #f0f7fe;
+            --bg-surface: #ffffff;
+            --bg-card: rgba(255,255,255,0.88);
+            --bg-card-hover: rgba(255,255,255,0.98);
+            --border: rgba(0,102,255,0.14);
+            --border-accent: rgba(0,102,255,0.32);
+            --text: #0a1628;
+            --text-muted: rgba(10,22,40,0.58);
+            --text-dim: rgba(10,22,40,0.35);
+            --nav-bg: rgba(240,247,254,0.94);
+            --orb-opacity: 0.2;
+            --select-bg: #ffffff;
+            --select-text: #0a1628;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== BACKGROUND ===== */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+            background: radial-gradient(ellipse at 10% 45%, rgba(0,150,199,0.12) 0%, transparent 55%),
+                        radial-gradient(ellipse at 85% 15%, rgba(0,102,255,0.1) 0%, transparent 45%),
+                        radial-gradient(ellipse at 55% 85%, rgba(0,229,255,0.07) 0%, transparent 40%),
+                        var(--bg-deep);
+        }
+        [data-theme="light"] .bg-scene {
+            background: radial-gradient(ellipse at 10% 45%, rgba(0,102,255,0.07) 0%, transparent 55%),
+                        radial-gradient(ellipse at 85% 15%, rgba(0,180,216,0.06) 0%, transparent 45%),
+                        var(--bg-deep);
+        }
+
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(100px); animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .orb-1 { width: 700px; height: 700px; background: radial-gradient(circle, rgba(0,150,199,0.28), rgba(0,102,255,0.12) 55%, transparent 70%); top: -250px; left: -120px; animation-delay: 0s; }
+        .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,229,255,0.22), rgba(0,150,199,0.08) 55%, transparent 70%); bottom: -150px; right: -120px; animation-delay: 7s; }
+        .orb-3 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(0,64,204,0.18), transparent 70%); top: 35%; left: 55%; animation-delay: 14s; }
+        .orb-4 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(0,229,255,0.12), transparent 70%); top: 70%; left: 5%; animation-delay: 5s; }
+
+        @keyframes orbFloat {
+            0%,100% { transform: translate(0,0) scale(1); }
+            25% { transform: translate(28px,-26px) scale(1.04); }
+            50% { transform: translate(-18px, 18px) scale(0.97); }
+            75% { transform: translate(12px, 22px) scale(1.02); }
+        }
+
+        .scanline {
+            position: fixed; left: 0; right: 0; height: 1px; z-index: 0; pointer-events: none;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.5) 25%, rgba(0,180,216,0.8) 50%, rgba(0,229,255,0.5) 75%, transparent 100%);
+            animation: scanSweep 5s linear infinite;
+            opacity: 0.6;
+            box-shadow: 0 0 16px rgba(0,229,255,0.6), 0 0 32px rgba(0,150,199,0.3);
+        }
+        @keyframes scanSweep {
+            0% { top: -2%; opacity: 0; }
+            5% { opacity: 0.6; }
+            95% { opacity: 0.6; }
+            100% { top: 102%; opacity: 0; }
+        }
+        [data-theme="light"] .scanline { opacity: 0.2; }
+
+        .grid-bg {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0,229,255,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.08) 1px, transparent 1px);
+            background-size: 44px 44px;
+            animation: gridShift 30s linear infinite;
+            opacity: 0.35;
+        }
+        @keyframes gridShift { 0%{background-position:0 0;} 100%{background-position:44px 44px;} }
+        html[data-theme="light"] .orb { opacity: 0.2; }
+        [data-theme="light"] .grid-bg { opacity: 0.14; }
+        .theme-toggle {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--bg-card); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-muted); font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover { background: var(--primary-light); border-color: var(--border-accent); color: var(--primary); transform: rotate(20deg); }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 clamp(20px, 5%, 80px);
+            height: 68px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: background 0.4s;
+        }
+
+        .nav-brand {
+            display: flex; align-items: center; gap: 12px; text-decoration: none;
+        }
+
+        .nav-brand-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #0066ff, #00e5ff);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(0,229,255,0.4);
+            animation: brandPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes brandPulse {
+            0%,100% { box-shadow: 0 0 20px rgba(0,229,255,0.4); }
+            50% { box-shadow: 0 0 30px rgba(0,180,216,0.55); }
+        }
+
+        .nav-brand-icon i { font-size: 18px; color: white; }
+
+        .nav-brand-text {
+            font-size: 1.15rem; font-weight: 800;
+            background: linear-gradient(135deg, white, var(--accent));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        .nav-right {
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .nav-chip {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.85rem; color: var(--text-muted);
+            cursor: pointer; transition: all 0.25s;
+            text-decoration: none;
+        }
+
+        .nav-chip:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-accent);
+            color: var(--text);
+        }
+
+        .nav-chip i { font-size: 0.9rem; }
+
+        .nav-chip.user-chip {
+            color: var(--text);
+            border-color: rgba(108,99,255,0.25);
+        }
+
+        .nav-chip.logout-chip:hover {
+            background: var(--danger-light);
+            border-color: rgba(255,71,87,0.3);
+            color: var(--danger);
+        }
+
+        .model-status {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 14px;
+            border-radius: 50px; font-size: 0.78rem; font-weight: 600;
+        }
+
+        .model-status.loaded {
+            background: var(--success-light);
+            border: 1px solid rgba(0,230,118,0.25);
+            color: var(--success);
+        }
+
+        .model-status.not-loaded {
+            background: var(--warning-light);
+            border: 1px solid rgba(255,165,2,0.25);
+            color: var(--warning);
+        }
+
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: dotPulse 1.5s ease-in-out infinite; }
+        @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.4;transform:scale(0.7);} }
+
+        /* ===== LAYOUT ===== */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            max-width: 1400px; margin: 0 auto;
+            padding: 40px clamp(20px, 5%, 60px) 80px;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            text-align: center; margin-bottom: 48px;
+            animation: fadeInDown 0.7s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 18px; margin-bottom: 20px;
+            background: var(--primary-light); border: 1px solid var(--border-accent);
+            border-radius: 50px; font-size: 0.8rem; font-weight: 600; color: #a5a0ff;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 900; line-height: 1.15; margin-bottom: 16px;
+            background: linear-gradient(135deg, white 30%, var(--accent) 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.05rem; color: var(--text-muted);
+            max-width: 560px; margin: 0 auto; line-height: 1.7;
+        }
+
+        /* ===== STATS BAR ===== */
+        .stats-row {
+            display: flex; gap: 16px; justify-content: center;
+            flex-wrap: wrap; margin-bottom: 48px;
+            animation: fadeInUp 0.7s ease 0.1s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-pill {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 22px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 50px; transition: all 0.3s;
+        }
+
+        .stat-pill:hover { background: var(--bg-card-hover); border-color: var(--border-accent); transform: translateY(-2px); }
+
+        .stat-pill-icon { font-size: 1.3rem; }
+
+        .stat-pill-val { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+        .stat-pill-lbl { font-size: 0.77rem; color: var(--text-muted); font-weight: 500; }
+
+        /* ===== MAIN GRID ===== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            animation: fadeInUp 0.7s ease 0.2s both;
+        }
+
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* ===== CARD ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            backdrop-filter: blur(16px);
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .card:hover { border-color: var(--border-accent); }
+
+        .card-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card-header-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .icon-purple { background: var(--primary-light); color: var(--primary); }
+        .icon-cyan { background: var(--accent-light); color: var(--accent); }
+        .icon-green { background: var(--success-light); color: var(--success); }
+        .icon-red { background: var(--danger-light); color: var(--danger); }
+        .icon-orange { background: var(--warning-light); color: var(--warning); }
+
+        .card-header-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .card-header-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* ===== UPLOAD ZONE ===== */
+        .upload-zone {
+            border: 2px dashed rgba(108,99,255,0.3);
+            border-radius: var(--radius-md);
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(108,99,255,0.03);
+            position: relative;
+        }
+
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: scale(1.01);
+        }
+
+        .upload-zone.drag-over { border-style: solid; }
+
+        .upload-icon-wrap {
+            width: 80px; height: 80px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem; color: var(--primary);
+            animation: uploadBounce 2.5s ease-in-out infinite;
+        }
+
+        @keyframes uploadBounce {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-zone h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .upload-zone p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+        .upload-zone .format-tags {
+            display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap;
+        }
+
+        .format-tag {
+            padding: 3px 10px; border-radius: 20px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            font-size: 0.72rem; color: var(--text-muted); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        #imageInput { display: none; }
+
+        /* ===== IMAGE PREVIEW ===== */
+        .preview-box {
+            display: none; margin-top: 20px;
+            border-radius: var(--radius-md); overflow: hidden;
+            position: relative; background: #000;
+        }
+
+        .preview-box img {
+            width: 100%; max-height: 260px; object-fit: contain;
+            display: block; border-radius: var(--radius-md);
+            transition: transform 0.3s;
+        }
+
+        .preview-box img:hover { transform: scale(1.02); }
+
+        .preview-overlay {
+            position: absolute; top: 10px; right: 10px;
+            display: flex; gap: 8px;
+        }
+
+        .preview-badge {
+            padding: 4px 12px;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            border-radius: 20px; font-size: 0.75rem; color: var(--accent); font-weight: 600;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+
+        /* ===== PATIENT FORM ===== */
+        .patient-form { display: none; margin-top: 20px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .fg {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+
+        .fg label {
+            font-size: 0.75rem; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+        }
+
+        .fg input, .fg select {
+            padding: 11px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text); font-size: 0.9rem; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.3s;
+        }
+
+        .fg input:focus, .fg select:focus {
+            border-color: var(--primary);
+            background: rgba(108,99,255,0.06);
+            box-shadow: 0 0 0 2px rgba(108,99,255,0.15);
+        }
+
+        .fg input::placeholder { color: rgba(255,255,255,0.2); }
+        .fg select option { background: #1a1a2e; color: var(--text); }
+
+        /* ===== ANALYZE BUTTON ===== */
+        .analyze-btn {
+            display: none;
+            width: 100%; margin-top: 20px; padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border: none; border-radius: var(--radius-md);
+            font-size: 1rem; font-weight: 700; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.3s;
+            align-items: center; justify-content: center; gap: 10px;
+            position: relative; overflow: hidden;
+        }
+
+        .analyze-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+            transition: left 0.6s;
+        }
+
+        .analyze-btn:hover::before { left: 100%; }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(108,99,255,0.5);
+        }
+
+        .analyze-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite; display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== RESULT PANEL ===== */
+        .result-panel { display: none; }
+
+        .result-banner {
+            border-radius: var(--radius-md);
+            padding: 28px;
+            text-align: center;
+            position: relative; overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .result-banner.no-tumor {
+            background: linear-gradient(135deg, rgba(0,230,118,0.15), rgba(0,212,255,0.08));
+            border: 1px solid rgba(0,230,118,0.2);
+        }
+
+        .result-banner.has-tumor {
+            background: linear-gradient(135deg, rgba(255,71,87,0.15), rgba(255,165,2,0.08));
+            border: 1px solid rgba(255,71,87,0.2);
+        }
+
+        .result-icon { font-size: 2.8rem; margin-bottom: 10px; display: block; }
+        .result-label { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px; }
+        .result-diagnosis { font-size: 1.7rem; font-weight: 900; color: var(--text); margin-bottom: 8px; line-height: 1.2; }
+
+        .confidence-row {
+            display: flex; align-items: center; gap: 12px; margin-top: 14px;
+        }
+
+        .confidence-bar-track {
+            flex: 1; height: 8px; border-radius: 4px;
+            background: rgba(255,255,255,0.1); overflow: hidden;
+        }
+
+        .confidence-bar-fill {
+            height: 100%; border-radius: 4px; width: 0%;
+            transition: width 1.2s cubic-bezier(0.25,1,0.5,1);
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .confidence-val { font-size: 0.9rem; font-weight: 700; color: var(--accent); min-width: 44px; }
+
+        /* ===== STAGE BADGE ===== */
+        .stage-row {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+        }
+
+        .stage-badge {
+            padding: 6px 18px; border-radius: 50px;
+            font-size: 0.82rem; font-weight: 700;
+        }
+
+        .stage-Early { background: var(--success-light); color: var(--success); border: 1px solid rgba(0,230,118,0.3); }
+        .stage-Intermediate { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(255,165,2,0.3); }
+        .stage-Advanced { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(255,71,87,0.3); }
+
+        /* ===== VIZ TABS ===== */
+        .viz-tabs {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+
+        .viz-tab {
+            padding: 8px 16px; border-radius: var(--radius-sm);
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all 0.25s; font-family: 'Inter', sans-serif;
+        }
+
+        .viz-tab:hover { background: var(--bg-card-hover); border-color: var(--border-accent); color: var(--text); }
+
+        .viz-tab.active {
+            background: var(--primary-light); border-color: var(--border-accent);
+            color: var(--primary);
+        }
+
+        .viz-image-wrap {
+            border-radius: var(--radius-md); overflow: hidden;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+        }
+
+        .viz-image-wrap img {
+            width: 100%; display: block; border-radius: var(--radius-md);
+        }
+
+        /* ===== DETAIL GRID ===== */
+        .detail-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px; margin-bottom: 20px;
+        }
+
+        .detail-chip {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 14px;
+            transition: all 0.25s;
+        }
+
+        .detail-chip:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+
+        .detail-chip-icon { font-size: 1.2rem; margin-bottom: 8px; display: block; }
+        .detail-chip-val { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+        .detail-chip-lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+
+        /* ===== PRECAUTIONS ===== */
+        .precautions-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .precaution-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 11px 14px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text);
+            line-height: 1.5; transition: all 0.25s;
+        }
+
+        .precaution-item:hover { background: var(--bg-card-hover); border-color: var(--border-accent); }
+
+        .precaution-item i { color: var(--success); font-size: 0.85rem; margin-top: 2px; flex-shrink: 0; }
+
+        .precaution-item.urgent { border-color: rgba(255,71,87,0.25); background: var(--danger-light); }
+        .precaution-item.urgent i { color: var(--danger); }
+
+        /* ===== DOWNLOAD BUTTON ===== */
+        .download-btn {
+            width: 100%; padding: 14px;
+            background: transparent;
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            color: var(--primary);
+            font-size: 0.95rem; font-weight: 700; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-top: 16px;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108,99,255,0.3);
+        }
+
+        /* ===== PROFILE MODAL ===== */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+            align-items: center; justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: #0f0f24;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            width: 90%; max-width: 480px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+            animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            overflow: hidden;
+        }
+        [data-theme="light"] .modal-box {
+            background: #ffffff;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.85) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-head {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 22px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .modal-head h2 {
+            font-size: 1.1rem; font-weight: 700; color: var(--text);
+            display: flex; align-items: center; gap: 10px;
+        }
+        [data-theme="light"] .modal-head h2 {
+            color: #ffffff;
+        }
+
+        .modal-close {
+            background: rgba(255,255,255,0.15); border: none; color: var(--text);
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 1rem;
+        }
+
+        .modal-close:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
+
+        .modal-body { padding: 28px; }
+
+        .avatar-wrap {
+            text-align: center; margin-bottom: 24px;
+        }
+
+        .avatar-circle {
+            width: 80px; height: 80px; border-radius: 50%; margin: 0 auto;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: white;
+            box-shadow: 0 0 30px rgba(108,99,255,0.4);
+        }
+
+        .avatar-name { margin-top: 10px; font-weight: 700; font-size: 1.05rem; color: var(--text); }
+        .avatar-role { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
+
+        .profile-field { margin-bottom: 16px; }
+        .profile-field label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 7px; }
+
+        .profile-field input, .profile-field select {
+            width: 100%; padding: 12px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text); font-size: 0.9rem; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.3s;
+        }
+        [data-theme="light"] .profile-field input, [data-theme="light"] .profile-field select {
+            background: rgba(0,102,255,0.04);
+            color: #0a1628;
+            border-color: rgba(0,102,255,0.2);
+        }
+        [data-theme="light"] .profile-field input:focus, [data-theme="light"] .profile-field select:focus {
+            background: rgba(0,102,255,0.06);
+            border-color: var(--primary);
+        }
+
+        .profile-field input:focus, .profile-field select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(108,99,255,0.15);
+        }
+
+        .profile-field input:disabled, .profile-field select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Fix for select dropdown options visibility */
+        .profile-field select {
+            appearance: auto;
+            -webkit-appearance: auto;
+            -moz-appearance: auto;
+        }
+
+        .profile-field select option {
+            background: var(--select-bg);
+            color: var(--select-text);
+            padding: 8px 12px;
+        }
+        [data-theme="dark"] .profile-field select option {
+            background: #1a1a2e;
+            color: #cce8ff;
+        }
+        [data-theme="light"] .profile-field select option {
+            background: #ffffff;
+            color: #0a1628;
+        }
+
+        .modal-btn-row { display: flex; gap: 10px; margin-top: 20px; }
+
+        .btn-outline {
+            flex: 1; padding: 12px;
+            background: transparent; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-muted);
+            font-size: 0.9rem; font-weight: 600; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.25s;
+        }
+
+        .btn-outline:hover { border-color: var(--border-accent); color: var(--text); }
+
+        .btn-solid {
+            flex: 1; padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none; border-radius: var(--radius-sm); color: white;
+            font-size: 0.9rem; font-weight: 700; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.25s;
+        }
+
+        .btn-solid:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(108,99,255,0.4); }
+
+        /* ===== TOAST ===== */
+        .toast-wrap {
+            position: fixed; bottom: 24px; right: 24px; z-index: 2000;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+
+        .toast {
+            padding: 14px 20px; border-radius: var(--radius-md);
+            font-size: 0.88rem; font-weight: 600; color: white;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            animation: toastIn 0.35s ease;
+            pointer-events: auto;
+        }
+
+        @keyframes toastIn { from { opacity:0; transform: translateX(40px); } to { opacity:1; transform: translateX(0); } }
+
+        .toast.success { background: linear-gradient(135deg, #00c853, #00e676); }
+        .toast.error { background: linear-gradient(135deg, #d32f2f, #ff4757); }
+        .toast.info { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+
+        .no-tumor-box {
+            text-align: center; padding: 32px;
+            background: var(--success-light); border: 1px solid rgba(0,230,118,0.2);
+            border-radius: var(--radius-md);
+        }
+
+        .no-tumor-box i { font-size: 3rem; color: var(--success); margin-bottom: 14px; display: block; }
+        .no-tumor-box h3 { font-size: 1.1rem; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+        .no-tumor-box p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.4); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(108,99,255,0.7); }
+
+        .section-title {
+            font-size: 0.85rem; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+        }
+
+        .section-title::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .page-wrapper { padding: 24px 16px 60px; }
+            .hero h1 { font-size: 1.8rem; }
+            .main-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Light mode text contrast fixes */
+        [data-theme="light"] .hero h1 {
+            background: linear-gradient(135deg, #0a1628 30%, #0066ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        [data-theme="light"] .hero p {
+            color: #1a2a44;
+        }
+        [data-theme="light"] .stat-pill-val {
+            color: #0a1628;
+        }
+        [data-theme="light"] .stat-pill-lbl {
+            color: rgba(10,22,40,0.7);
+        }
+        [data-theme="light"] .card-header-title {
+            color: #0a1628;
+        }
+        [data-theme="light"] .card-header-sub {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .upload-zone h3 {
+            color: #0a1628;
+        }
+        [data-theme="light"] .upload-zone p {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .fg label {
+            color: rgba(10,22,40,0.7);
+        }
+        [data-theme="light"] .fg input, [data-theme="light"] .fg select {
+            color: #0a1628;
+            background: rgba(0,102,255,0.04);
+            border-color: rgba(0,102,255,0.2);
+        }
+        [data-theme="light"] .fg input:focus, [data-theme="light"] .fg select:focus {
+            background: rgba(0,102,255,0.06);
+            border-color: var(--primary);
+        }
+        [data-theme="light"] .fg input::placeholder {
+            color: rgba(10,22,40,0.3);
+        }
+        [data-theme="light"] .fg select option {
+            background: #ffffff;
+            color: #0a1628;
+        }
+        [data-theme="light"] .result-diagnosis {
+            color: #0a1628;
+        }
+        [data-theme="light"] .result-label {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .detail-chip-val {
+            color: #0a1628;
+        }
+        [data-theme="light"] .detail-chip-lbl {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .precaution-item {
+            color: #0a1628;
+        }
+        [data-theme="light"] .section-title {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .section-title::after {
+            background: rgba(0,102,255,0.2);
+        }
+        [data-theme="light"] .stage-row span[style] {
+            color: rgba(10,22,40,0.6) !important;
+        }
+        [data-theme="light"] .confidence-val {
+            color: #0066ff;
+        }
+        [data-theme="light"] .result-banner.no-tumor {
+            background: linear-gradient(135deg, rgba(0,178,72,0.12), rgba(0,180,216,0.08));
+            border-color: rgba(0,178,72,0.25);
+        }
+        [data-theme="light"] .result-banner.has-tumor {
+            background: linear-gradient(135deg, rgba(229,57,53,0.12), rgba(245,124,0,0.08));
+            border-color: rgba(229,57,53,0.25);
+        }
+        [data-theme="light"] .no-tumor-box {
+            background: rgba(0,178,72,0.08);
+            border-color: rgba(0,178,72,0.2);
+        }
+        [data-theme="light"] .no-tumor-box h3 {
+            color: #00b248;
+        }
+        [data-theme="light"] .no-tumor-box p {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .stage-Early {
+            background: rgba(0,178,72,0.12);
+            color: #00b248;
+            border-color: rgba(0,178,72,0.3);
+        }
+        [data-theme="light"] .stage-Intermediate {
+            background: rgba(245,124,0,0.12);
+            color: #f57c00;
+            border-color: rgba(245,124,0,0.3);
+        }
+        [data-theme="light"] .stage-Advanced {
+            background: rgba(229,57,53,0.12);
+            color: #e53935;
+            border-color: rgba(229,57,53,0.3);
+        }
+        [data-theme="light"] .download-btn {
+            color: #0066ff;
+            border-color: rgba(0,102,255,0.3);
+        }
+        [data-theme="light"] .download-btn:hover {
+            background: rgba(0,102,255,0.1);
+            color: #0040cc;
+        }
+        [data-theme="light"] .model-status.loaded {
+            background: rgba(0,178,72,0.1);
+            color: #00b248;
+            border-color: rgba(0,178,72,0.2);
+        }
+        [data-theme="light"] .nav-brand-text {
+            background: linear-gradient(135deg, #0a1628, #0066ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        [data-theme="light"] .nav-chip {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .nav-chip:hover {
+            color: #0a1628;
+        }
+        [data-theme="light"] .nav-chip.user-chip {
+            color: #0a1628;
+            border-color: rgba(0,102,255,0.2);
+        }
+        [data-theme="light"] .profile-field input, [data-theme="light"] .profile-field select {
+            background: rgba(0,102,255,0.04);
+            color: #0a1628;
+            border-color: rgba(0,102,255,0.2);
+        }
+        [data-theme="light"] .profile-field input:focus, [data-theme="light"] .profile-field select:focus {
+            background: rgba(0,102,255,0.06);
+            border-color: var(--primary);
+        }
+        [data-theme="light"] .profile-field label {
+            color: rgba(10,22,40,0.7);
+        }
+        [data-theme="light"] .avatar-name {
+            color: #0a1628;
+        }
+        [data-theme="light"] .avatar-role {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .btn-outline {
+            color: rgba(10,22,40,0.6);
+            border-color: rgba(0,102,255,0.2);
+        }
+        [data-theme="light"] .btn-outline:hover {
+            border-color: rgba(0,102,255,0.4);
+            color: #0a1628;
+        }
+        [data-theme="light"] .btn-solid {
+            background: linear-gradient(135deg, #0066ff, #0040cc);
+        }
+        [data-theme="light"] .btn-solid:hover {
+            box-shadow: 0 6px 18px rgba(0,102,255,0.4);
+        }
+        [data-theme="light"] .viz-tab {
+            color: rgba(10,22,40,0.6);
+        }
+        [data-theme="light"] .viz-tab:hover {
+            color: #0a1628;
+        }
+        [data-theme="light"] .viz-tab.active {
+            background: rgba(0,102,255,0.1);
+            color: #0066ff;
+            border-color: rgba(0,102,255,0.3);
+        }
+        [data-theme="light"] .viz-image-wrap {
+            background: rgba(0,0,0,0.05);
+        }
+        [data-theme="light"] .toast.info {
+            background: linear-gradient(135deg, #0066ff, #0040cc);
+        }
+
+        /* History Modal */
+        .history-modal {
+            max-width: 900px;
+            width: 95%;
+        }
+        .history-stats {
+            display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .history-stat {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px 18px; flex: 1; min-width: 80px;
+            text-align: center;
+        }
+        .history-stat-val { font-size: 1.2rem; font-weight: 800; color: var(--text); }
+        .history-stat-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+        .history-table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        .history-table {
+            width: 100%; border-collapse: collapse; font-size: 0.82rem;
+        }
+        .history-table th {
+            text-align: left; padding: 10px 12px; color: var(--text-muted);
+            font-weight: 600; text-transform: uppercase; font-size: 0.7rem;
+            letter-spacing: 0.05em; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; background: var(--bg-deep);
+        }
+        .history-table td {
+            padding: 10px 12px; border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+        .history-table tr:hover td { background: var(--bg-card-hover); }
+        .history-table .status-badge {
+            padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+        }
+        .history-table .status-tumor { background: var(--danger-light); color: var(--danger); }
+        .history-table .status-clear { background: var(--success-light); color: var(--success); }
+        .history-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .history-empty i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+        .filter-bar {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+            align-items: center;
+        }
+        .filter-bar input, .filter-bar select {
+            padding: 8px 14px; border-radius: var(--radius-sm);
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text); font-family: 'Inter', sans-serif;
+            font-size: 0.82rem; outline: none;
+        }
+        .filter-bar input:focus, .filter-bar select:focus {
+            border-color: var(--primary);
+        }
+        .filter-bar input::placeholder { color: var(--text-muted); }
+        .filter-bar input { flex: 1; min-width: 150px; }
+
+        .modal-close-btn {
+            background: rgba(255,255,255,0.15); border: none; color: var(--text);
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 1rem;
+        }
+        .modal-close-btn:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
+    </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-scene">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+</div>
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <div class="nav-brand-icon"><i class="fas fa-brain"></i></div>
+        <span class="nav-brand-text">NeuroScan AI</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <a href="#history" class="nav-chip" style="text-decoration:none;" onclick="openHistory()">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+        </a>
+        <a href="#profile" class="nav-chip" style="text-decoration:none;" onclick="openProfile()">
+            <i class="fas fa-id-card"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div class="model-status loaded">
+            <div class="status-dot"></div>
+            AI Model Ready
+        </div>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+            <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <div class="nav-chip user-chip" onclick="openProfile()" id="profileBtn">
+            <i class="fas fa-user-md"></i>
+            <span id="navUsername">Doctor</span>
+        </div>
+        <a href="/logout" class="nav-chip logout-chip">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Page -->
+<div class="page-wrapper" id="mainPage">
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-badge">
+            <i class="fas fa-microchip"></i>
+            Powered by Deep Learning &middot; VGG16 Transfer Learning
+        </div>
+        <h1>AI Brain Tumor Detection</h1>
+        <p>Upload an MRI scan and get instant AI-powered diagnosis with stage analysis, heatmap visualization, and personalized medical precautions.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-pill">
+            <span class="stat-pill-icon">🧠</span>
+            <div>
+                <div class="stat-pill-val">4</div>
+                <div class="stat-pill-lbl">Tumor Classes</div>
+            </div>
+        </div>
+        <div class="stat-pill">
+            <span class="stat-pill-icon">⚡</span>
+            <div>
+                <div class="stat-pill-val">&lt; 5s</div>
+                <div class="stat-pill-lbl">Analysis Time</div>
+            </div>
+        </div>
+        <div class="stat-pill">
+            <span class="stat-pill-icon">🔥</span>
+            <div>
+                <div class="stat-pill-val">CAM</div>
+                <div class="stat-pill-lbl">Heatmap View</div>
+            </div>
+        </div>
+        <div class="stat-pill">
+            <span class="stat-pill-icon">📄</span>
+            <div>
+                <div class="stat-pill-val">PDF</div>
+                <div class="stat-pill-lbl">Report Export</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+
+        <!-- LEFT: Upload & Patient -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-icon icon-purple"><i class="fas fa-upload"></i></div>
+                    <div>
+                        <div class="card-header-title">Upload MRI Scan</div>
+                        <div class="card-header-sub">JPG, PNG, JPEG &middot; Max 16MB</div>
+                    </div>
+                </div>
+
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()"
+                     ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+                    <div class="upload-icon-wrap">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drop MRI scan here</h3>
+                    <p>or click to browse files from your computer</p>
+                    <div class="format-tags">
+                        <span class="format-tag">JPG</span>
+                        <span class="format-tag">PNG</span>
+                        <span class="format-tag">JPEG</span>
+                        <span class="format-tag">Max 16MB</span>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" onchange="handleFileSelect(this.files[0])">
+                </div>
+
+                <!-- Preview -->
+                <div class="preview-box" id="previewBox">
+                    <img id="previewImg" src="" alt="MRI Preview">
+                    <div class="preview-overlay">
+                        <span class="preview-badge" id="previewBadge">MRI Scan</span>
+                    </div>
+                </div>
+
+                <!-- Patient form -->
+                <div class="patient-form" id="patientForm">
+                    <div style="margin-bottom: 14px;">
+                        <div class="section-title"><i class="fas fa-user-md"></i> Patient Information</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="fg">
+                            <label>Full Name *</label>
+                            <input type="text" id="patientName" placeholder="Jane Doe" required>
+                        </div>
+                        <div class="fg">
+                            <label>Age *</label>
+                            <input type="number" id="patientAge" placeholder="42" min="1" max="120" required>
+                        </div>
+                        <div class="fg">
+                            <label>Gender *</label>
+                            <select id="patientGender" required>
+                                <option value="">Select</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label>Contact Number</label>
+                            <input type="tel" id="patientPhone" placeholder="+91 9876543210">
+                        </div>
+                        <div class="fg">
+                            <label>Referring Doctor</label>
+                            <input type="text" id="doctorName" placeholder="Dr. Smith">
+                        </div>
+                        <div class="fg">
+                            <label>Hospital / Clinic</label>
+                            <input type="text" id="hospitalName" placeholder="City General Hospital">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analyze button -->
+                <button class="analyze-btn" id="analyzeBtn" onclick="analyzeImage()">
+                    <div class="btn-spinner" id="btnSpinner"></div>
+                    <i class="fas fa-microscope" id="btnIcon"></i>
+                    <span id="btnText">Analyze MRI Scan</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div>
+            <div class="card" id="resultCard">
+                <div class="card-header">
+                    <div class="card-header-icon icon-cyan"><i class="fas fa-chart-simple"></i></div>
+                    <div>
+                        <div class="card-header-title">Analysis Results</div>
+                        <div class="card-header-sub">AI-generated diagnosis report</div>
+                    </div>
+                </div>
+
+                <!-- Placeholder -->
+                <div id="resultPlaceholder" style="text-align:center; padding: 60px 20px;">
+                    <div style="width:80px;height:80px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2rem;color:var(--text-dim);">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;">Upload an MRI scan and fill in patient details to<br>get your AI-powered diagnosis</p>
+                </div>
+
+                <!-- Result -->
+                <div class="result-panel" id="resultPanel">
+
+                    <div class="result-banner" id="resultBanner">
+                        <span class="result-icon" id="resultIcon">🧠</span>
+                        <div class="result-label">DIAGNOSIS</div>
+                        <div class="result-diagnosis" id="diagnosisText">–</div>
+                        <div class="confidence-row">
+                            <span style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap">Confidence</span>
+                            <div class="confidence-bar-track">
+                                <div class="confidence-bar-fill" id="confBar"></div>
+                            </div>
+                            <span class="confidence-val" id="confVal">0%</span>
+                        </div>
+                    </div>
+
+                    <div id="tumorDetails" style="display:none;">
+
+                        <div class="section-title"><i class="fas fa-layer-group"></i> Tumor Stage</div>
+                        <div class="stage-row" id="stageRow">
+                            <span class="stage-badge" id="stageBadge">–</span>
+                            <span style="font-size:0.83rem;color:var(--text-muted);" id="stageDesc">–</span>
+                        </div>
+
+                        <div class="detail-grid" id="detailGrid"></div>
+
+                        <div class="section-title"><i class="fas fa-eye"></i> Heatmap Visualization</div>
+                        <div class="viz-tabs" id="vizTabs">
+                            <button class="viz-tab active" onclick="switchViz('original', this)"><i class="fas fa-image"></i> Original</button>
+                            <button class="viz-tab" onclick="switchViz('overlay', this)"><i class="fas fa-fire"></i> Heatmap</button>
+                            <button class="viz-tab" onclick="switchViz('marked', this)"><i class="fas fa-map-marker-alt"></i> Marked</button>
+                            <button class="viz-tab" onclick="switchViz('comparison', this)"><i class="fas fa-columns"></i> Compare</button>
+                        </div>
+                        <div class="viz-image-wrap">
+                            <img id="vizImg" src="" alt="Visualization">
+                        </div>
+
+                        <div class="section-title" style="margin-top:20px;"><i class="fas fa-shield-alt"></i> Recommended Precautions</div>
+                        <div class="precautions-list" id="precautionsList"></div>
+
+                    </div>
+
+                    <div id="noTumorBox" style="display:none;" class="no-tumor-box">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>No Abnormalities Detected</h3>
+                        <p>The MRI scan appears normal. No tumor or abnormal growth was detected in the analyzed regions. Routine follow-up scans are still recommended.</p>
+                    </div>
+
+                    <button class="download-btn" id="downloadBtn" onclick="generatePDF()" style="display:none;">
+                        <i class="fas fa-file-pdf"></i>
+                        Download Diagnostic Report (PDF)
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal-overlay" id="profileModal" onclick="closeProfileOnOverlay(event)">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+            <button class="modal-close" onclick="closeProfile()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="avatar-wrap">
+                <div class="avatar-circle"><i class="fas fa-user-md"></i></div>
+                <div class="avatar-name" id="modalUsername">Doctor</div>
+                <div class="avatar-role" id="modalRole">Medical Professional</div>
+            </div>
+            <div class="profile-field">
+                <label>Username</label>
+                <input type="text" id="pUsername" value="Doctor" disabled>
+            </div>
+            <div class="profile-field">
+                <label>Full Name</label>
+                <input type="text" id="pFullName" placeholder="Enter your full name" disabled>
+            </div>
+            <div class="profile-field">
+                <label>Email</label>
+                <input type="email" id="pEmail" placeholder="your@email.com" disabled>
+            </div>
+            <div class="profile-field">
+                <label>Specialization</label>
+                <select id="pSpec" disabled>
+                    <option value="Medical Professional">Medical Professional</option>
+                    <option value="Radiologist">Radiologist</option>
+                    <option value="Neurologist">Neurologist</option>
+                    <option value="Neurosurgeon">Neurosurgeon</option>
+                    <option value="Medical Student">Medical Student</option>
+                    <option value="Researcher">Researcher</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="modal-btn-row">
+                <button class="btn-outline" id="editBtn" onclick="toggleEdit()">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+                <button class="btn-solid" id="saveBtn" onclick="saveProfile()" style="display:none;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button class="btn-outline" onclick="closeProfile()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal-overlay" id="historyModal" onclick="closeHistoryOnOverlay(event)">
+    <div class="modal-box history-modal">
+        <div class="modal-head">
+            <h2><i class="fas fa-history"></i> Patient Scan History</h2>
+            <button class="modal-close" onclick="closeHistory()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">All MRI scans analysed by your account, stored securely on this device.</p>
+
+            <div class="history-stats" id="historyStats">
+                <div class="history-stat">
+                    <div class="history-stat-val" id="totalScans">0</div>
+                    <div class="history-stat-lbl">Patients Attended</div>
+                </div>
+                <div class="history-stat">
+                    <div class="history-stat-val" id="tumorScans">0</div>
+                    <div class="history-stat-lbl">Tumor Detected</div>
+                </div>
+                <div class="history-stat">
+                    <div class="history-stat-val" id="clearScans">0</div>
+                    <div class="history-stat-lbl">Clear Scans</div>
+                </div>
+                <div class="history-stat">
+                    <div class="history-stat-val" id="avgConfidence">0%</div>
+                    <div class="history-stat-lbl">Avg Confidence</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <input type="text" id="searchHistory" placeholder="🔍 Search patient name..." oninput="renderHistory()">
+                <select id="filterHistory" onchange="renderHistory()">
+                    <option value="all">All</option>
+                    <option value="tumor">Tumor Only</option>
+                    <option value="clear">Clear Only</option>
+                </select>
+            </div>
+
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Age / Gender</th>
+                            <th>Diagnosis</th>
+                            <th>Stage</th>
+                            <th>Confidence</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="historyEmpty" class="history-empty">
+                <i class="fas fa-file-medical"></i>
+                No scan records found.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ===== STATE =====
+let currentFile = null;
+let currentImageBase64 = null;
+let currentPrediction = null;
+let currentConfidence = null;
+let currentMedication = null;
+let vizData = null;
+let scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+
+// ===== TOAST =====
+function toast(msg, type = 'info', duration = 3500) {
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<i class="fas ${icons[type]}"></i> ${msg}`;
+    document.getElementById('toastWrap').appendChild(el);
+    setTimeout(() => el.style.opacity = '0', duration - 400);
+    setTimeout(() => el.remove(), duration);
+}
+
+// ===== DRAG & DROP =====
+function onDragOver(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+    document.getElementById('uploadZone').classList.remove('drag-over');
+}
+
+function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+}
+
+// ===== FILE SELECT =====
+function handleFileSelect(file) {
+    if (!file) {
+        toast('No file selected', 'error');
+        return;
+    }
+
+    if (file.size > 16 * 1024 * 1024) {
+        toast('File too large! Maximum size is 16MB', 'error');
+        return;
+    }
+
+    if (!file.type.match('image.*')) {
+        toast('Please select a valid image file (JPG, PNG, JPEG)', 'error');
+        return;
+    }
+
+    currentFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+        currentImageBase64 = e.target.result;
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('previewBadge').textContent = file.name;
+        document.getElementById('previewBox').style.display = 'block';
+        document.getElementById('patientForm').style.display = 'block';
+        document.getElementById('analyzeBtn').style.display = 'flex';
+        resetResults();
+        toast('MRI scan loaded successfully!', 'success');
+    };
+    reader.onerror = () => {
+        toast('Failed to read file', 'error');
+    };
+    reader.readAsDataURL(file);
+}
+
+// ===== RESET RESULTS =====
+function resetResults() {
+    document.getElementById('resultPlaceholder').style.display = 'block';
+    document.getElementById('resultPanel').style.display = 'none';
+    document.getElementById('downloadBtn').style.display = 'none';
+    vizData = null;
+}
+
+// ===== SIMULATED AI ANALYSIS (with heatmap) =====
+function analyzeImage() {
+    if (!currentFile) {
+        toast('Please upload an MRI scan first', 'error');
+        return;
+    }
+
+    const name = document.getElementById('patientName').value.trim();
+    const age = document.getElementById('patientAge').value;
+    const gender = document.getElementById('patientGender').value;
+
+    if (!name || !age || !gender) {
+        toast('Please fill in Name, Age, and Gender before analysis', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    document.getElementById('btnSpinner').style.display = 'block';
+    document.getElementById('btnIcon').style.display = 'none';
+    document.getElementById('btnText').textContent = 'Analyzing…';
+
+    document.getElementById('resultPlaceholder').style.display = 'none';
+    document.getElementById('resultPanel').style.display = 'block';
+    document.getElementById('diagnosisText').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing MRI…';
+    document.getElementById('confBar').style.width = '0%';
+    document.getElementById('confVal').textContent = '–';
+    document.getElementById('tumorDetails').style.display = 'none';
+    document.getElementById('noTumorBox').style.display = 'none';
+    document.getElementById('downloadBtn').style.display = 'none';
+
+    setTimeout(() => {
+        const hasTumor = Math.random() > 0.35;
+        const tumorTypes = ['Glioma', 'Meningioma', 'Pituitary Tumor'];
+        const prediction = hasTumor ? tumorTypes[Math.floor(Math.random() * tumorTypes.length)] : 'No Tumor';
+        const confidence = hasTumor ? 75 + Math.floor(Math.random() * 20) : 82 + Math.floor(Math.random() * 15);
+
+        const canvas = document.createElement('canvas');
+        const img = new Image();
+        img.onload = function() {
+            const w = img.width, h = img.height;
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+
+            let result = {};
+
+            if (hasTumor) {
+                const cx = w * (0.3 + Math.random() * 0.4);
+                const cy = h * (0.3 + Math.random() * 0.4);
+                const radius = Math.min(w, h) * (0.15 + Math.random() * 0.2);
+
+                const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+                grad.addColorStop(0, 'rgba(255, 50, 50, 0.7)');
+                grad.addColorStop(0.4, 'rgba(255, 150, 0, 0.6)');
+                grad.addColorStop(0.7, 'rgba(255, 200, 0, 0.4)');
+                grad.addColorStop(1, 'rgba(255, 255, 0, 0.1)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([6, 4]);
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.6, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.font = 'bold 18px Inter, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 8;
+                ctx.fillText('⚠ Tumor Region', cx - 60, cy - radius - 10);
+                ctx.shadowBlur = 0;
+
+                const markedCanvas = document.createElement('canvas');
+                markedCanvas.width = w; markedCanvas.height = h;
+                const mctx = markedCanvas.getContext('2d');
+                mctx.drawImage(img, 0, 0, w, h);
+                mctx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
+                mctx.lineWidth = 4;
+                mctx.setLineDash([8, 6]);
+                mctx.beginPath();
+                mctx.arc(cx, cy, radius * 0.6, 0, Math.PI * 2);
+                mctx.stroke();
+                mctx.font = 'bold 16px Inter, sans-serif';
+                mctx.fillStyle = 'rgba(255, 50, 50, 0.95)';
+                mctx.shadowColor = 'rgba(0,0,0,0.9)';
+                mctx.shadowBlur = 10;
+                mctx.fillText('⚠ Tumor', cx - 40, cy - radius - 8);
+                mctx.shadowBlur = 0;
+
+                const compCanvas = document.createElement('canvas');
+                compCanvas.width = w * 2 + 20; compCanvas.height = h;
+                const cctx = compCanvas.getContext('2d');
+                cctx.fillStyle = '#0a0a1a';
+                cctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
+                cctx.drawImage(img, 0, 0, w, h);
+                cctx.drawImage(canvas, w + 20, 0, w, h);
+                cctx.font = 'bold 14px Inter, sans-serif';
+                cctx.fillStyle = 'rgba(255,255,255,0.8)';
+                cctx.shadowColor = 'rgba(0,0,0,0.8)';
+                cctx.shadowBlur = 6;
+                cctx.fillText('Original', 10, 30);
+                cctx.fillText('Heatmap Overlay', w + 30, 30);
+                cctx.shadowBlur = 0;
+
+                const heatmapB64 = canvas.toDataURL('image/png');
+                const markedB64 = markedCanvas.toDataURL('image/png');
+                const compB64 = compCanvas.toDataURL('image/png');
+
+                const stages = ['Early Stage', 'Intermediate Stage', 'Advanced Stage'];
+                const stage = stages[Math.floor(Math.random() * stages.length)];
+                const areaPct = Math.floor(8 + Math.random() * 25);
+                const locations = ['Frontal Lobe', 'Temporal Lobe', 'Parietal Lobe', 'Occipital Lobe', 'Cerebellum'];
+                const location = locations[Math.floor(Math.random() * locations.length)];
+                const stageDesc = {
+                    'Early Stage': 'Small localized tumor. Early detection provides better treatment outcomes.',
+                    'Intermediate Stage': 'Moderate growth. Surgical intervention may be required.',
+                    'Advanced Stage': 'Large tumor with potential spread. Urgent medical attention required.'
+                }[stage];
+
+                const precautions = [
+                    'Consult a neurologist immediately for further evaluation.',
+                    'Schedule a follow-up MRI in 4-6 weeks to monitor growth.',
+                    'Maintain a healthy diet and avoid strenuous activities.',
+                    'Keep a log of any symptoms such as headaches or vision changes.',
+                    'Consider a second opinion from a specialist.'
+                ];
+
+                const medication = {
+                    approach: stage === 'Early Stage' ? 'Conservative management with monitoring' :
+                               stage === 'Intermediate Stage' ? 'Surgical resection + adjuvant therapy' :
+                               'Aggressive treatment: surgery + radiation + chemotherapy',
+                    medications: [
+                        { name: 'Dexamethasone', dose: '4mg daily', purpose: 'Reduce brain swelling' },
+                        { name: 'Levetiracetam', dose: '500mg BID', purpose: 'Prevent seizures' }
+                    ],
+                    follow_up: 'MRI scan every 3 months for the first year',
+                    note: 'All medications should be taken under medical supervision.'
+                };
+
+                result = {
+                    prediction: prediction,
+                    confidence: confidence,
+                    medication: medication,
+                    visualization: {
+                        success: true,
+                        no_tumor: false,
+                        original: currentImageBase64.split(',')[1],
+                        overlay: heatmapB64.split(',')[1],
+                        marked: markedB64.split(',')[1],
+                        comparison: compB64.split(',')[1],
+                        tumor_info: {
+                            stage: stage,
+                            location: location,
+                            area_percentage: areaPct,
+                            confidence_score: confidence,
+                            stage_description: stageDesc,
+                            precautions: precautions.slice(0, 3 + Math.floor(Math.random() * 2))
+                        }
+                    }
+                };
+
+            } else {
+                result = {
+                    prediction: 'No Tumor',
+                    confidence: confidence,
+                    visualization: {
+                        success: true,
+                        no_tumor: true,
+                        original: currentImageBase64.split(',')[1]
+                    }
+                };
+            }
+
+            // Save to history
+            const doctorName = document.getElementById('doctorName').value.trim() || 'N/A';
+            const patientName = document.getElementById('patientName').value.trim();
+            const patientAge = document.getElementById('patientAge').value;
+            const patientGender = document.getElementById('patientGender').value;
+            const stage = result.visualization.tumor_info ? result.visualization.tumor_info.stage : 'N/A';
+
+            const historyEntry = {
+                id: Date.now(),
+                patient: patientName,
+                age: patientAge,
+                gender: patientGender,
+                diagnosis: result.prediction,
+                stage: stage,
+                confidence: result.confidence,
+                doctor: doctorName,
+                date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            };
+
+            scanHistory.unshift(historyEntry);
+            localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
+
+            renderResult(result);
+
+            btn.disabled = false;
+            document.getElementById('btnSpinner').style.display = 'none';
+            document.getElementById('btnIcon').style.display = 'inline';
+            document.getElementById('btnText').textContent = 'Analyze MRI Scan';
+        };
+        img.src = currentImageBase64;
+
+    }, 2000);
+}
+
+// ===== RENDER RESULT =====
+function renderResult(data) {
+    currentPrediction = data.prediction;
+    currentConfidence = data.confidence;
+    currentMedication = data.medication || null;
+
+    const noTumor = data.prediction === 'No Tumor';
+    const banner = document.getElementById('resultBanner');
+    const viz = data.visualization;
+
+    banner.className = 'result-banner ' + (noTumor ? 'no-tumor' : 'has-tumor');
+    document.getElementById('resultIcon').textContent = noTumor ? '✅' : '⚠️';
+    document.getElementById('diagnosisText').textContent = data.prediction;
+    document.getElementById('confVal').textContent = data.confidence + '%';
+
+    setTimeout(() => {
+        document.getElementById('confBar').style.width = data.confidence + '%';
+    }, 100);
+
+    if (noTumor) {
+        document.getElementById('noTumorBox').style.display = 'block';
+        document.getElementById('tumorDetails').style.display = 'none';
+        document.getElementById('downloadBtn').style.display = 'flex';
+        toast('Analysis complete – No tumor detected!', 'success');
+    } else if (viz && viz.success && !viz.no_tumor) {
+        vizData = viz;
+        window.vizData = viz;
+
+        document.getElementById('noTumorBox').style.display = 'none';
+        document.getElementById('tumorDetails').style.display = 'block';
+
+        const info = viz.tumor_info;
+
+        const stageCls = info.stage.includes('Early') ? 'stage-Early' :
+                         info.stage.includes('Intermediate') ? 'stage-Intermediate' : 'stage-Advanced';
+        const stageBadge = document.getElementById('stageBadge');
+        stageBadge.textContent = info.stage;
+        stageBadge.className = 'stage-badge ' + stageCls;
+        document.getElementById('stageDesc').textContent = info.stage_description;
+
+        document.getElementById('detailGrid').innerHTML = `
+            <div class="detail-chip">
+                <span class="detail-chip-icon">📍</span>
+                <div class="detail-chip-val">${info.location || 'N/A'}</div>
+                <div class="detail-chip-lbl">Location</div>
+            </div>
+            <div class="detail-chip">
+                <span class="detail-chip-icon">📊</span>
+                <div class="detail-chip-val">${info.area_percentage}%</div>
+                <div class="detail-chip-lbl">Area Affected</div>
+            </div>
+            <div class="detail-chip">
+                <span class="detail-chip-icon">🎯</span>
+                <div class="detail-chip-val">${info.confidence_score}%</div>
+                <div class="detail-chip-lbl">Confidence</div>
+            </div>
+        `;
+
+        document.getElementById('vizImg').src = 'data:image/png;base64,' + viz.original;
+
+        const precList = document.getElementById('precautionsList');
+        if (info.precautions && info.precautions.length > 0) {
+            precList.innerHTML = info.precautions.map((p, i) => {
+                const isUrgent = p.toUpperCase().includes('IMMEDIATE') || p.toUpperCase().includes('URGENT');
+                return `<div class="precaution-item ${isUrgent ? 'urgent' : ''}">
+                    <i class="fas ${isUrgent ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+                    <span>${p}</span>
+                </div>`;
+            }).join('');
+        }
+
+        if (data.medication && data.medication.approach) {
+            const med = data.medication;
+            const medHtml = `
+            <div class="section-title" style="margin-top:20px;"><i class="fas fa-pills"></i> Prescription & Medication</div>
+            <div style="background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Treatment Approach</div>
+                <div style="font-size:0.9rem;font-weight:700;color:var(--danger);">${med.approach}</div>
+            </div>
+            ${med.medications ? med.medications.map(m => `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;transition:all 0.25s;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                    <i class="fas fa-capsules" style="color:var(--warning);font-size:0.9rem;"></i>
+                    <span style="font-weight:700;color:var(--text);font-size:0.9rem;">${m.name}</span>
+                    <span style="font-size:0.75rem;color:var(--text-muted);background:var(--warning-light);padding:2px 10px;border-radius:20px;margin-left:auto;">${m.dose}</span>
+                </div>
+                <div style="font-size:0.8rem;color:var(--text-muted);padding-left:24px;">${m.purpose}</div>
+            </div>`).join('') : ''}
+            ${med.follow_up ? `<div style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:0.82rem;"><i class="fas fa-calendar-check" style="color:var(--primary);margin-right:8px;"></i><strong style="color:var(--primary);">Follow-up:</strong> <span style="color:var(--text-muted);">${med.follow_up}</span></div>` : ''}
+            ${med.note ? `<div style="background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:10px;padding:12px 14px;margin-top:8px;font-size:0.82rem;"><i class="fas fa-triangle-exclamation" style="color:var(--warning);margin-right:8px;"></i><span style="color:var(--text-muted);">${med.note}</span></div>` : ''}
+            `;
+            const existingMed = document.getElementById('medicationSection');
+            if (existingMed) existingMed.innerHTML = medHtml;
+            else {
+                const medDiv = document.createElement('div');
+                medDiv.id = 'medicationSection';
+                medDiv.innerHTML = medHtml;
+                document.getElementById('precautionsList').after(medDiv);
+            }
+        }
+
+        document.getElementById('downloadBtn').style.display = 'flex';
+        toast('Analysis complete!', 'success');
+    } else {
+        document.getElementById('downloadBtn').style.display = 'flex';
+        toast('Analysis complete!', 'success');
+    }
+}
+
+// ===== SWITCH VISUALIZATION =====
+function switchViz(type, btn) {
+    if (!vizData) return;
+    document.querySelectorAll('#vizTabs .viz-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const src = vizData[type];
+    if (src) document.getElementById('vizImg').src = 'data:image/png;base64,' + src;
+}
+
+// ===== HISTORY MODAL =====
+function openHistory() {
+    document.getElementById('historyModal').classList.add('open');
+    renderHistory();
+}
+
+function closeHistory() {
+    document.getElementById('historyModal').classList.remove('open');
+}
+
+function closeHistoryOnOverlay(e) {
+    if (e.target === document.getElementById('historyModal')) closeHistory();
+}
+
+function renderHistory() {
+    const search = document.getElementById('searchHistory').value.toLowerCase().trim();
+    const filter = document.getElementById('filterHistory').value;
+    let filtered = scanHistory;
+
+    if (search) {
+        filtered = filtered.filter(h => h.patient.toLowerCase().includes(search));
+    }
+    if (filter === 'tumor') {
+        filtered = filtered.filter(h => h.diagnosis !== 'No Tumor');
+    } else if (filter === 'clear') {
+        filtered = filtered.filter(h => h.diagnosis === 'No Tumor');
+    }
+
+    const tbody = document.getElementById('historyBody');
+    const empty = document.getElementById('historyEmpty');
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+    } else {
+        empty.style.display = 'none';
+        tbody.innerHTML = filtered.map((h, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td><strong>${h.patient}</strong></td>
+                <td>${h.age} / ${h.gender}</td>
+                <td><span class="status-badge ${h.diagnosis === 'No Tumor' ? 'status-clear' : 'status-tumor'}">${h.diagnosis}</span></td>
+                <td>${h.stage}</td>
+                <td>${h.confidence}%</td>
+                <td>${h.doctor}</td>
+                <td>${h.date}</td>
+            </tr>
+        `).join('');
+    }
+
+    // Update stats
+    const total = scanHistory.length;
+    const tumors = scanHistory.filter(h => h.diagnosis !== 'No Tumor').length;
+    const clear = total - tumors;
+    const avgConf = total > 0 ? Math.round(scanHistory.reduce((s, h) => s + h.confidence, 0) / total) : 0;
+
+    document.getElementById('totalScans').textContent = total;
+    document.getElementById('tumorScans').textContent = tumors;
+    document.getElementById('clearScans').textContent = clear;
+    document.getElementById('avgConfidence').textContent = avgConf + '%';
+}
+
+// ===== PROFILE MODAL =====
+function openProfile() {
+    document.getElementById('profileModal').classList.add('open');
+    loadProfileData();
+}
+
+function closeProfile() {
+    document.getElementById('profileModal').classList.remove('open');
+    setEditMode(false);
+}
+
+function closeProfileOnOverlay(e) {
+    if (e.target === document.getElementById('profileModal')) closeProfile();
+}
+
+function loadProfileData() {
+    document.getElementById('pFullName').value = localStorage.getItem('pFullName') || '';
+    document.getElementById('pEmail').value = localStorage.getItem('pEmail') || '';
+    const spec = localStorage.getItem('pSpec') || 'Medical Professional';
+    document.getElementById('pSpec').value = spec;
+    document.getElementById('modalRole').textContent = spec;
+    const name = localStorage.getItem('pFullName') || 'Doctor';
+    document.getElementById('modalUsername').textContent = name;
+}
+
+function setEditMode(on) {
+    document.getElementById('pFullName').disabled = !on;
+    document.getElementById('pEmail').disabled = !on;
+    document.getElementById('pSpec').disabled = !on;
+    document.getElementById('editBtn').style.display = on ? 'none' : 'flex';
+    document.getElementById('saveBtn').style.display = on ? 'flex' : 'none';
+}
+
+function toggleEdit() { setEditMode(true); }
+
+function saveProfile() {
+    const fullName = document.getElementById('pFullName').value.trim();
+    const email = document.getElementById('pEmail').value.trim();
+    const spec = document.getElementById('pSpec').value;
+
+    if (email && !email.includes('@')) {
+        toast('Please enter a valid email address', 'error');
+        return;
+    }
+
+    localStorage.setItem('pFullName', fullName);
+    localStorage.setItem('pEmail', email);
+    localStorage.setItem('pSpec', spec);
+
+    document.getElementById('modalRole').textContent = spec;
+    if (fullName) document.getElementById('modalUsername').textContent = fullName;
+    document.getElementById('navUsername').textContent = fullName || 'Doctor';
+
+    setEditMode(false);
+    toast('Profile saved successfully!', 'success');
+    setTimeout(closeProfile, 1200);
+}
+
+// ===== PDF REPORT =====
+function generatePDF() {
+    if (!currentPrediction || !currentConfidence) {
+        toast('No analysis results to download. Please run an analysis first.', 'error');
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        const contentW = pageW - margin * 2;
+        let y = 0;
+
+        doc.setFillColor(0, 102, 204);
+        doc.rect(0, 0, pageW, 38, 'F');
+        doc.setFillColor(0, 180, 216);
+        doc.rect(0, 33, pageW, 5, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(255, 255, 255);
+        doc.text('NeuroScan AI', margin, 18);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Brain Tumor Detection & Diagnostic Report', margin, 26);
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        doc.setFontSize(8);
+        doc.setTextColor(200, 230, 255);
+        doc.text('Date: ' + dateStr + '  Time: ' + timeStr, pageW - margin, 22, { align: 'right' });
+
+        y = 48;
+
+        const patientName = document.getElementById('patientName').value.trim() || 'N/A';
+        const patientAge  = document.getElementById('patientAge').value || 'N/A';
+        const patientGender = document.getElementById('patientGender').value || 'N/A';
+        const doctorName  = document.getElementById('doctorName').value.trim() || 'N/A';
+        const hospitalName = document.getElementById('hospitalName').value.trim() || 'N/A';
+
+        doc.setFillColor(235, 245, 255);
+        doc.roundedRect(margin, y, contentW, 32, 3, 3, 'F');
+        doc.setDrawColor(0, 102, 204);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(margin, y, contentW, 32, 3, 3, 'S');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 80, 160);
+        doc.text('PATIENT INFORMATION', margin + 4, y + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(40, 40, 40);
+        const col1x = margin + 4, col2x = margin + contentW / 2;
+        doc.setFont('helvetica', 'bold'); doc.text('Patient:', col1x, y + 15);
+        doc.setFont('helvetica', 'normal'); doc.text(patientName, col1x + 22, y + 15);
+        doc.setFont('helvetica', 'bold'); doc.text('Age / Gender:', col2x, y + 15);
+        doc.setFont('helvetica', 'normal'); doc.text(patientAge + ' / ' + patientGender, col2x + 30, y + 15);
+        doc.setFont('helvetica', 'bold'); doc.text('Doctor:', col1x, y + 23);
+        doc.setFont('helvetica', 'normal'); doc.text(doctorName, col1x + 22, y + 23);
+        doc.setFont('helvetica', 'bold'); doc.text('Hospital:', col2x, y + 23);
+        doc.setFont('helvetica', 'normal'); doc.text(hospitalName, col2x + 20, y + 23);
+
+        y += 38;
+
+        const hasTumor = currentPrediction !== 'No Tumor';
+        if (hasTumor) { doc.setFillColor(255, 71, 87); } else { doc.setFillColor(0, 200, 100); }
+        doc.roundedRect(margin, y, contentW, 22, 3, 3, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(255, 255, 255);
+        const diagLabel = hasTumor ? currentPrediction + ' Detected' : 'No Tumor Detected';
+        doc.text(diagLabel, pageW / 2, y + 9, { align: 'center' });
+        doc.setFontSize(9);
+        doc.text('AI Confidence: ' + currentConfidence + '%', pageW / 2, y + 17, { align: 'center' });
+        y += 28;
+
+        if (currentImageBase64) {
+            try {
+                const imgW = 70, imgH = 70, imgX = pageW / 2 - 35;
+                doc.setDrawColor(0, 180, 216);
+                doc.setLineWidth(0.5);
+                doc.roundedRect(imgX - 1, y - 1, imgW + 2, imgH + 2, 2, 2, 'S');
+                doc.addImage(currentImageBase64, 'JPEG', imgX, y, imgW, imgH);
+                y += imgH + 5;
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(7.5);
+                doc.setTextColor(120, 120, 120);
+                doc.text('Uploaded MRI Scan', pageW / 2, y, { align: 'center' });
+                y += 8;
+            } catch (imgErr) { y += 4; }
+        }
+
+        if (hasTumor && vizData && vizData.tumor_info) {
+            const info = vizData.tumor_info;
+            doc.setFillColor(245, 245, 255);
+            doc.roundedRect(margin, y, contentW, 26, 3, 3, 'F');
+            doc.setDrawColor(100, 100, 200);
+            doc.roundedRect(margin, y, contentW, 26, 3, 3, 'S');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(60, 60, 180);
+            doc.text('TUMOR STAGE & DETAILS', margin + 4, y + 7);
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(40, 40, 40);
+            doc.setFont('helvetica', 'bold'); doc.text('Stage:', margin + 4, y + 15);
+            doc.setFont('helvetica', 'normal'); doc.text(info.stage || 'N/A', margin + 22, y + 15);
+            doc.setFont('helvetica', 'bold'); doc.text('Location:', margin + contentW / 2, y + 15);
+            doc.setFont('helvetica', 'normal'); doc.text(info.location || 'N/A', margin + contentW / 2 + 22, y + 15);
+            doc.setFont('helvetica', 'bold'); doc.text('Area Affected:', margin + 4, y + 22);
+            doc.setFont('helvetica', 'normal'); doc.text((info.area_percentage || '0') + '%', margin + 34, y + 22);
+            y += 32;
+            if (info.stage_description) {
+                doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+                const descLines = doc.splitTextToSize(info.stage_description, contentW);
+                doc.text(descLines, margin, y);
+                y += descLines.length * 5 + 4;
+            }
+            if (info.precautions && info.precautions.length > 0) {
+                if (y > pageH - 40) { doc.addPage(); y = 20; }
+                doc.setFillColor(0, 180, 216);
+                doc.rect(margin, y, contentW, 7, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+                doc.text('RECOMMENDED PRECAUTIONS', margin + 4, y + 5);
+                y += 11;
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+                info.precautions.forEach(function(p) {
+                    if (y > pageH - 20) { doc.addPage(); y = 20; }
+                    const isUrgent = p.toUpperCase().includes('IMMEDIATE') || p.toUpperCase().includes('URGENT') || p.toUpperCase().includes('HIGH CONFIDENCE');
+                    doc.setTextColor(isUrgent ? 200 : 30, isUrgent ? 0 : 30, isUrgent ? 0 : 30);
+                    doc.setFont('helvetica', isUrgent ? 'bold' : 'normal');
+                    const lines = doc.splitTextToSize((isUrgent ? '! ' : '- ') + p, contentW - 4);
+                    doc.text(lines, margin + 2, y);
+                    y += lines.length * 5 + 1.5;
+                });
+                y += 4;
+            }
+        } else if (!hasTumor) {
+            doc.setFillColor(220, 255, 235);
+            doc.roundedRect(margin, y, contentW, 22, 3, 3, 'F');
+            doc.setDrawColor(0, 180, 100);
+            doc.roundedRect(margin, y, contentW, 22, 3, 3, 'S');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(0, 130, 70);
+            doc.text('No tumor or abnormality detected in the MRI scan.', pageW / 2, y + 10, { align: 'center' });
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(60, 120, 80);
+            doc.text('Routine follow-up scans are still recommended.', pageW / 2, y + 17, { align: 'center' });
+            y += 28;
+        }
+
+        if (currentMedication && currentMedication.approach) {
+            if (y > pageH - 50) { doc.addPage(); y = 20; }
+            const med = currentMedication;
+            doc.setFillColor(255, 100, 50);
+            doc.rect(margin, y, contentW, 7, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+            doc.text('PRESCRIBED MEDICATIONS & TREATMENT', margin + 4, y + 5);
+            y += 11;
+            doc.setFillColor(255, 245, 240);
+            doc.roundedRect(margin, y, contentW, 12, 2, 2, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(180, 60, 0);
+            doc.text('Treatment Approach: ', margin + 4, y + 5);
+            doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40);
+            const approachLines = doc.splitTextToSize(med.approach, contentW - 50);
+            doc.text(approachLines[0] || med.approach, margin + 46, y + 5);
+            y += 16;
+            if (med.medications) {
+                med.medications.forEach(function(m) {
+                    if (y > pageH - 25) { doc.addPage(); y = 20; }
+                    doc.setFillColor(250, 250, 250);
+                    doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+                    doc.setDrawColor(220, 220, 220);
+                    doc.roundedRect(margin, y, contentW, 14, 2, 2, 'S');
+                    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(20, 20, 20);
+                    doc.text(m.name, margin + 4, y + 6);
+                    doc.setFillColor(255, 165, 0);
+                    doc.roundedRect(margin + contentW - 55, y + 2, 52, 6, 2, 2, 'F');
+                    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 255, 255);
+                    doc.text(m.dose, margin + contentW - 53, y + 6.5);
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(100, 100, 100);
+                    doc.text(m.purpose, margin + 4, y + 11);
+                    y += 17;
+                });
+            }
+            if (med.follow_up) {
+                if (y > pageH - 20) { doc.addPage(); y = 20; }
+                doc.setFillColor(230, 250, 255);
+                doc.roundedRect(margin, y, contentW, 10, 2, 2, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(0, 100, 160);
+                doc.text('Follow-up: ', margin + 4, y + 6.5);
+                doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40);
+                doc.text(med.follow_up, margin + 24, y + 6.5);
+                y += 14;
+            }
+            if (med.note) {
+                if (y > pageH - 20) { doc.addPage(); y = 20; }
+                doc.setFillColor(255, 250, 225);
+                doc.roundedRect(margin, y, contentW, 10, 2, 2, 'F');
+                doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(120, 80, 0);
+                const noteLines = doc.splitTextToSize('Note: ' + med.note, contentW - 4);
+                doc.text(noteLines[0], margin + 4, y + 6.5);
+                y += 14;
+            }
+        }
+
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+            doc.setPage(p);
+            doc.setFillColor(240, 248, 255);
+            doc.rect(0, pageH - 12, pageW, 12, 'F');
+            doc.setFont('helvetica', 'italic'); doc.setFontSize(7); doc.setTextColor(100, 130, 160);
+            doc.text('NeuroScan AI  |  AI-Powered Brain Tumor Detection  |  For clinical reference only, not a substitute for professional medical advice.', pageW / 2, pageH - 5, { align: 'center' });
+            doc.text('Page ' + p + ' of ' + totalPages, pageW - margin, pageH - 5, { align: 'right' });
+        }
+
+        const filename = 'NeuroScan_Report_' + patientName.replace(/\s+/g, '_') + '_' + now.toISOString().slice(0, 10) + '.pdf';
+        doc.save(filename);
+        toast('Diagnostic report downloaded successfully!', 'success');
+
+    } catch (err) {
+        console.error('PDF generation error:', err);
+        toast('Could not generate PDF: ' + err.message, 'error');
+    }
+}
+
+// ===== THEME =====
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    localStorage.setItem('neuroscan-theme', theme);
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+applyTheme(localStorage.getItem('neuroscan-theme') || 'dark');
+
+// ===== KEYBOARD ESC =====
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeProfile();
+        closeHistory();
+    }
+});
+
+// ===== INIT =====
+renderHistory();
+</script>
+</body>
+</html>

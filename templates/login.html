@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – NeuroScan AI | Brain Tumor Detection</title>
+    <meta name="description" content="Login to NeuroScan AI – Advanced AI-powered brain tumor detection system">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root[data-theme="dark"] {
+            --primary: #a78bfa;
+            --primary-dim: rgba(167,139,250,0.15);
+            --primary-dark: #7c3aed;
+            --accent: #f472b6;
+            --accent2: #c084fc;
+            --success: #34d399;
+            --danger: #fb7185;
+            --bg-deep: #0d0614;
+            --bg-mid: #130920;
+            --bg-card: rgba(124,58,237,0.07);
+            --border: rgba(167,139,250,0.15);
+            --border-glow: rgba(167,139,250,0.35);
+            --text: #f1e8ff;
+            --text-muted: rgba(220,200,255,0.65);
+            --nav-bg: rgba(13,6,20,0.92);
+        }
+        :root[data-theme="light"] {
+            --primary: #7c3aed;
+            --primary-dim: rgba(124,58,237,0.1);
+            --primary-dark: #5b21b6;
+            --accent: #ec4899;
+            --accent2: #a855f7;
+            --success: #059669;
+            --danger: #e11d48;
+            --bg-deep: #faf5ff;
+            --bg-mid: #f3e8ff;
+            --bg-card: rgba(255,255,255,0.95);
+            --border: rgba(124,58,237,0.2);
+            --border-glow: rgba(124,58,237,0.4);
+            --text: #1e1035;
+            --text-muted: #4c1d95;
+            --nav-bg: rgba(250,245,255,0.94);
+        }
+
+        /* ===== BACKGROUND ===== */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+            padding: 24px 0;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        /* Deep space background */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+            background:
+                radial-gradient(ellipse at 10% 50%, rgba(124,58,237,0.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 90% 15%, rgba(236,72,153,0.12) 0%, transparent 45%),
+                radial-gradient(ellipse at 55% 90%, rgba(167,139,250,0.10) 0%, transparent 45%),
+                var(--bg-deep);
+        }
+        [data-theme="light"] .bg-scene {
+            background:
+                radial-gradient(ellipse at 10% 50%, rgba(124,58,237,0.09) 0%, transparent 55%),
+                radial-gradient(ellipse at 90% 15%, rgba(236,72,153,0.07) 0%, transparent 45%),
+                radial-gradient(ellipse at 55% 90%, rgba(167,139,250,0.06) 0%, transparent 45%),
+                var(--bg-deep);
+        }
+
+        /* Glowing orbs */
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(90px); animation: orbFloat 20s ease-in-out infinite;
+        }
+        .orb-1 {
+            width: 640px; height: 640px;
+            background: radial-gradient(circle, rgba(124,58,237,0.35), rgba(167,139,250,0.15) 50%, transparent 70%);
+            top: -220px; left: -160px; animation-delay: 0s;
+        }
+        .orb-2 {
+            width: 540px; height: 540px;
+            background: radial-gradient(circle, rgba(236,72,153,0.28), rgba(244,114,182,0.10) 50%, transparent 70%);
+            bottom: -130px; right: -110px; animation-delay: 7s;
+        }
+        .orb-3 {
+            width: 380px; height: 380px;
+            background: radial-gradient(circle, rgba(91,33,182,0.22), transparent 70%);
+            top: 40%; left: 58%; animation-delay: 14s;
+        }
+        .orb-4 {
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(192,132,252,0.20), transparent 70%);
+            top: 65%; left: 8%; animation-delay: 5s;
+        }
+        @keyframes orbFloat {
+            0%,100% { transform: translate(0,0) scale(1); }
+            25% { transform: translate(30px,-28px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.96); }
+            75% { transform: translate(14px, 24px) scale(1.03); }
+        }
+        [data-theme="light"] .orb { opacity: 0.25; }
+
+        /* Hex grid overlay */
+        .hex-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.3;
+            background-image:
+                linear-gradient(rgba(167,139,250,0.10) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(167,139,250,0.10) 1px, transparent 1px);
+            background-size: 44px 44px;
+            animation: gridShift 30s linear infinite;
+        }
+        @keyframes gridShift {
+            0% { background-position: 0 0; }
+            100% { background-position: 44px 44px; }
+        }
+        [data-theme="light"] .hex-grid { opacity: 0.12; }
+
+        /* MRI scan sweep */
+        .scanline {
+            position: fixed; left: 0; right: 0; height: 1px; z-index: 0; pointer-events: none;
+            background: linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.6) 25%, rgba(236,72,153,0.9) 50%, rgba(167,139,250,0.6) 75%, transparent 100%);
+            animation: scanSweep 5s linear infinite;
+            opacity: 0.6;
+            box-shadow: 0 0 16px rgba(167,139,250,0.7), 0 0 32px rgba(236,72,153,0.3);
+        }
+        @keyframes scanSweep {
+            0% { top: -2%; opacity: 0; }
+            5% { opacity: 0.6; }
+            95% { opacity: 0.6; }
+            100% { top: 102%; opacity: 0; }
+        }
+        [data-theme="light"] .scanline { opacity: 0.25; }
+
+        /* Neural particles */
+        .particles-canvas {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+
+        /* ===== LAYOUT ===== */
+        .auth-wrapper {
+            position: relative; z-index: 10;
+            width: 100%; max-width: 440px; padding: 20px;
+        }
+
+        /* Brand */
+        .brand { text-align: center; margin-bottom: 32px; }
+
+        .brand-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 76px; height: 76px;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            border-radius: 22px; margin-bottom: 16px;
+            box-shadow: 0 0 40px rgba(167,139,250,0.5), 0 0 80px rgba(124,58,237,0.25);
+            animation: iconPulse 3s ease-in-out infinite;
+            position: relative;
+        }
+        .brand-icon::after {
+            content: '';
+            position: absolute; inset: -2px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(167,139,250,0.45), rgba(236,72,153,0.35));
+            z-index: -1;
+            filter: blur(8px);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(167,139,250,0.5), 0 0 80px rgba(124,58,237,0.25); }
+            50% { box-shadow: 0 0 60px rgba(167,139,250,0.7), 0 0 100px rgba(236,72,153,0.35); }
+        }
+        .brand-icon i { font-size: 32px; color: white; }
+
+        .brand h1 {
+            font-size: 1.85rem; font-weight: 800;
+            background: linear-gradient(135deg, #e9d5ff 20%, #f472b6 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .brand p { color: var(--text-muted); font-size: 0.88rem; margin-top: 6px; }
+
+        /* Card */
+        .auth-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid var(--border);
+            border-radius: 26px; padding: 36px;
+            box-shadow:
+                0 24px 80px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(0,229,255,0.1),
+                0 0 0 1px rgba(0,229,255,0.05);
+            animation: cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+        .card-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 28px; }
+
+        /* Alert */
+        .alert {
+            padding: 12px 16px; border-radius: 12px; font-size: 0.85rem;
+            margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .alert-danger { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); color: #ff6b7a; }
+        .alert-success { background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.3); color: #00e676; }
+
+        /* Form */
+        .form-group { margin-bottom: 20px; }
+
+        .form-label {
+            display: block; font-size: 0.78rem; font-weight: 600;
+            color: var(--text-muted); margin-bottom: 8px;
+            text-transform: uppercase; letter-spacing: 0.07em;
+        }
+
+        .input-wrapper { position: relative; }
+
+        .input-icon {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 0.95rem;
+            transition: color 0.3s; pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%; padding: 14px 16px 14px 44px;
+            background: rgba(0,180,216,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text); font-size: 0.95rem;
+            font-family: 'Inter', sans-serif; outline: none; transition: all 0.3s;
+        }
+        .form-input::placeholder { color: rgba(180,220,255,0.25); }
+        .form-input:focus {
+            border-color: var(--primary);
+            background: rgba(0,229,255,0.07);
+            box-shadow: 0 0 0 3px rgba(0,229,255,0.12);
+        }
+        .input-wrapper:focus-within .input-icon { color: var(--primary); }
+
+        .pw-toggle {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--text-muted);
+            cursor: pointer; font-size: 0.9rem; transition: color 0.3s; padding: 4px;
+        }
+        .pw-toggle:hover { color: var(--primary); }
+        .pw-input { padding-right: 44px; }
+
+        /* Forgot row */
+        .forgot-row { text-align: right; margin-top: -10px; margin-bottom: 20px; }
+        .forgot-row a { font-size: 0.82rem; color: var(--primary); text-decoration: none; transition: color 0.3s; }
+        .forgot-row a:hover { color: var(--accent); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+
+        /* Button */
+        .btn-primary {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            color: white; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 700;
+            font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            position: relative; overflow: hidden;
+        }
+        .btn-primary::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+            transition: left 0.5s;
+        }
+        .btn-primary:hover::before { left: 100%; }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(167,139,250,0.5);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+        .btn-loader {
+            display: none; width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Divider */
+        .divider {
+            text-align: center; margin: 24px 0; position: relative;
+            color: var(--text-muted); font-size: 0.8rem;
+        }
+        .divider::before, .divider::after {
+            content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border);
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .register-link { text-align: center; color: var(--text-muted); font-size: 0.88rem; }
+        .register-link a {
+            color: var(--primary); font-weight: 600; text-decoration: none; transition: all 0.3s;
+        }
+        .register-link a:hover { color: var(--accent); text-shadow: 0 0 12px rgba(0,229,255,0.4); }
+
+        /* Theme toggle */
+        .theme-toggle-fab {
+            position: fixed; top: 18px; right: 18px; z-index: 999;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(0,180,216,0.08); border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s; color: var(--text-muted);
+            font-size: 1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .theme-toggle-fab:hover {
+            background: rgba(0,229,255,0.15); border-color: rgba(0,229,255,0.4);
+            color: var(--primary); transform: rotate(20deg) scale(1.05);
+            box-shadow: 0 4px 20px rgba(0,229,255,0.25);
+        }
+
+        /* Light mode overrides */
+        [data-theme="light"] .auth-card {
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 24px 80px rgba(124,58,237,0.15), inset 0 1px 0 rgba(255,255,255,1);
+        }
+        [data-theme="light"] .card-title { color: #1e1035; }
+        [data-theme="light"] .card-subtitle { color: #4c1d95; }
+        [data-theme="light"] .form-label { color: #5b21b6; }
+        [data-theme="light"] .form-input {
+            background: rgba(255,255,255,0.95); color: #1e1035;
+            border-color: rgba(124,58,237,0.25);
+        }
+        [data-theme="light"] .form-input::placeholder { color: rgba(30,16,53,0.35); }
+        [data-theme="light"] .form-input:focus { background: rgba(124,58,237,0.04); }
+        [data-theme="light"] .brand h1 {
+            background: linear-gradient(135deg, #3b0764, #7c3aed);
+            -webkit-background-clip: text; background-clip: text;
+        }
+        [data-theme="light"] .brand p { color: #5b21b6; }
+        [data-theme="light"] .register-link { color: #3b0764; }
+        [data-theme="light"] .divider { color: #6d28d9; }
+        [data-theme="light"] .forgot-row a { color: #7c3aed; }
+    </style>
+</head>
+<body>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle-fab" id="themeToggle" title="Toggle light/dark mode" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+
+    <!-- Background -->
+    <div class="bg-scene">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
+    </div>
+    <div class="hex-grid"></div>
+    <div class="scanline"></div>
+    <canvas class="particles-canvas" id="particlesCanvas"></canvas>
+
+    <div class="auth-wrapper">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h1>NeuroScan AI</h1>
+            <p>Advanced Brain Tumor Detection System</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="card-title">Welcome back</div>
+            <div class="card-subtitle">Sign in to access the AI diagnostic platform</div>
+
+            {% if error %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form id="loginForm" method="POST" onsubmit="return handleSubmit(this)">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" class="form-input"
+                               placeholder="doctor@hospital.com" required autocomplete="email">
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-input pw-input"
+                               placeholder="••••••••" required autocomplete="current-password">
+                        <i class="fas fa-lock input-icon"></i>
+                        <button type="button" class="pw-toggle" onclick="togglePw('password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="forgot-row">
+                    <a href="/forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <div class="btn-loader" id="btnLoader"></div>
+                    <i class="fas fa-sign-in-alt" id="btnIcon"></i>
+                    <span id="btnText">Sign In</span>
+                </button>
+            </form>
+
+            <div class="divider">or</div>
+
+            <div class="register-link">
+                Don't have an account? <a href="/register">Create one free</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== THEME TOGGLE =====
+        const root = document.documentElement;
+        function applyTheme(theme) {
+            root.setAttribute('data-theme', theme);
+            const icon = document.getElementById('themeIcon');
+            const btn  = document.getElementById('themeToggle');
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+            localStorage.setItem('neuroscan-theme', theme);
+        }
+        function toggleTheme() {
+            applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        }
+        applyTheme(localStorage.getItem('neuroscan-theme') || 'dark');
+
+        // ===== NEURAL PARTICLE CANVAS =====
+        const canvas = document.getElementById('particlesCanvas');
+        const ctx    = canvas.getContext('2d');
+        let W, H, nodes = [];
+
+        function resize() {
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function makeNode() {
+            return {
+                x: Math.random() * W,
+                y: Math.random() * H,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                r: Math.random() * 2 + 1,
+                pulse: Math.random() * Math.PI * 2,
+            };
+        }
+        for (let i = 0; i < 45; i++) nodes.push(makeNode());
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, W, H);
+            const isDark = root.getAttribute('data-theme') !== 'light';
+            const lineColor = isDark ? 'rgba(0,229,255,' : 'rgba(0,102,255,';
+            const nodeColor = isDark ? '#00e5ff' : '#0066ff';
+
+            nodes.forEach(n => {
+                n.x += n.vx; n.y += n.vy;
+                n.pulse += 0.03;
+                if (n.x < 0 || n.x > W) n.vx *= -1;
+                if (n.y < 0 || n.y > H) n.vy *= -1;
+
+                // connections
+                nodes.forEach(m => {
+                    const d = Math.hypot(n.x - m.x, n.y - m.y);
+                    if (d < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(n.x, n.y);
+                        ctx.lineTo(m.x, m.y);
+                        ctx.strokeStyle = lineColor + (0.15 * (1 - d / 130)).toFixed(3) + ')';
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
+                });
+
+                // node dot
+                const pulse = 0.7 + 0.3 * Math.sin(n.pulse);
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = nodeColor;
+                ctx.globalAlpha = isDark ? 0.6 : 0.35;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+
+        // ===== FORM =====
+        function togglePw(id, btn) {
+            const input = document.getElementById(id);
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            btn.querySelector('i').className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
+
+        function handleSubmit(form) {
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            if (!email || !password) return false;
+
+            const btn = document.getElementById('submitBtn');
+            document.getElementById('btnLoader').style.display = 'block';
+            document.getElementById('btnIcon').style.display = 'none';
+            document.getElementById('btnText').textContent = 'Signing in…';
+            btn.disabled = true;
+            return true;
+        }
+    </script>
+</body>
+</html>

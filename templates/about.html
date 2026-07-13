@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About – NeuroScan AI | Brain Tumor Detection</title>
+    <meta name="description" content="Learn about NeuroScan AI – how our deep learning model detects brain tumors, the technology stack, and the tumor types we classify.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ===== THEME VARIABLES ===== */
+        :root[data-theme="dark"] {
+            --bg-deep: #020b18;
+            --bg-surface: #041225;
+            --bg-card: rgba(0,180,216,0.042);
+            --bg-card-hover: rgba(0,229,255,0.07);
+            --border: rgba(0,229,255,0.1);
+            --border-accent: rgba(0,229,255,0.28);
+            --text: #cce8ff;
+            --text-muted: rgba(180,220,255,0.55);
+            --text-dim: rgba(180,220,255,0.3);
+            --primary: #00e5ff;
+            --primary-light: rgba(0,229,255,0.14);
+            --accent: #00b4d8;
+            --success: #00e676;
+            --danger: #ff4757;
+            --warning: #ffa502;
+            --nav-bg: rgba(2,11,24,0.92);
+            --orb-opacity: 1;
+            --shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        :root[data-theme="light"] {
+            --bg-deep: #e8f4fd;
+            --bg-surface: #ffffff;
+            --bg-card: rgba(255,255,255,0.88);
+            --bg-card-hover: rgba(255,255,255,0.98);
+            --border: rgba(0,102,255,0.14);
+            --border-accent: rgba(0,102,255,0.32);
+            --text: #0a1628;
+            --text-muted: rgba(10,22,40,0.6);
+            --text-dim: rgba(10,22,40,0.35);
+            --primary: #0066ff;
+            --primary-light: rgba(0,102,255,0.1);
+            --accent: #00b4d8;
+            --success: #00b248;
+            --danger: #e53935;
+            --warning: #f57c00;
+            --nav-bg: rgba(232,244,253,0.94);
+            --orb-opacity: 0.2;
+            --shadow: 0 12px 40px rgba(0,102,255,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        /* ===== BACKGROUND ===== */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+            background: radial-gradient(ellipse at 10% 45%, rgba(0,150,199,0.12) 0%, transparent 55%),
+                        radial-gradient(ellipse at 85% 15%, rgba(0,102,255,0.1) 0%, transparent 45%),
+                        radial-gradient(ellipse at 55% 85%, rgba(0,229,255,0.07) 0%, transparent 40%),
+                        var(--bg-deep);
+        }
+        [data-theme="light"] .bg-scene {
+            background: radial-gradient(ellipse at 10% 45%, rgba(0,102,255,0.07) 0%, transparent 55%),
+                        radial-gradient(ellipse at 85% 15%, rgba(0,180,216,0.06) 0%, transparent 45%),
+                        var(--bg-deep);
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(100px); opacity: var(--orb-opacity); animation: orbFloat 20s ease-in-out infinite;
+        }
+        .orb-1 { width: 700px; height: 700px; background: radial-gradient(circle, rgba(0,150,199,0.28), rgba(0,102,255,0.12) 55%, transparent 70%); top: -250px; left: -120px; }
+        .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,229,255,0.22), rgba(0,150,199,0.08) 55%, transparent 70%); bottom: -150px; right: -120px; animation-delay: 7s; }
+        .orb-3 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(0,64,204,0.18), transparent 70%); top: 50%; left: 50%; animation-delay: 14s; }
+        .orb-4 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,229,255,0.12), transparent 70%); top: 70%; left: 8%; animation-delay: 5s; }
+        @keyframes orbFloat {
+            0%,100% { transform: translate(0,0) scale(1); }
+            25% { transform: translate(22px,-22px) scale(1.04); }
+            50% { transform: translate(-16px,16px) scale(0.97); }
+            75% { transform: translate(12px,20px) scale(1.02); }
+        }
+        /* MRI scanline sweep */
+        .scanline {
+            position: fixed; left: 0; right: 0; height: 1px; z-index: 0; pointer-events: none;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.5) 25%, rgba(0,180,216,0.8) 50%, rgba(0,229,255,0.5) 75%, transparent 100%);
+            animation: scanSweep 5s linear infinite;
+            opacity: 0.6;
+            box-shadow: 0 0 16px rgba(0,229,255,0.6), 0 0 32px rgba(0,150,199,0.3);
+        }
+        @keyframes scanSweep {
+            0% { top: -2%; opacity: 0; }
+            5% { opacity: 0.6; }
+            95% { opacity: 0.6; }
+            100% { top: 102%; opacity: 0; }
+        }
+        [data-theme="light"] .scanline { opacity: 0.18; }
+        .grid-bg {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: linear-gradient(rgba(0,229,255,0.08) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,229,255,0.08) 1px, transparent 1px);
+            background-size: 44px 44px;
+            animation: gridShift 30s linear infinite;
+            opacity: 0.35;
+        }
+        @keyframes gridShift { 0%{background-position:0 0;} 100%{background-position:44px 44px;} }
+        [data-theme="light"] .grid-bg { opacity: 0.14; }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--nav-bg);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 clamp(20px,5%,80px);
+            height: 68px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: background 0.4s;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .nav-brand-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #0066ff, #00e5ff);
+            border-radius: 11px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(0,229,255,0.4);
+            animation: brandPulse 3s ease-in-out infinite;
+        }
+        @keyframes brandPulse {
+            0%,100% { box-shadow: 0 0 20px rgba(0,229,255,0.4); }
+            50% { box-shadow: 0 0 30px rgba(0,180,216,0.55); }
+        }
+        .nav-brand-icon i { font-size: 18px; color: white; }
+        .nav-brand-text {
+            font-size: 1.15rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .nav-links { display: flex; align-items: center; gap: 8px; }
+        .nav-link {
+            padding: 7px 16px; border-radius: 50px;
+            font-size: 0.88rem; font-weight: 600; color: var(--text-muted);
+            text-decoration: none; transition: all 0.25s;
+            border: 1px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary-light); border-color: var(--border-accent); color: var(--primary);
+        }
+        .nav-right { display: flex; align-items: center; gap: 10px; }
+
+        /* ===== THEME TOGGLE ===== */
+        .theme-toggle {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: var(--bg-card); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s; color: var(--text-muted);
+            font-size: 1rem;
+        }
+        .theme-toggle:hover { background: var(--primary-light); border-color: var(--border-accent); color: var(--primary); transform: rotate(20deg); }
+
+        /* ===== PAGE WRAPPER ===== */
+        .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 60px clamp(20px,5%,60px) 100px; }
+
+        /* ===== HERO ===== */
+        .hero { text-align: center; margin-bottom: 80px; animation: fadeInUp 0.7s ease; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 20px; margin-bottom: 24px;
+            background: var(--primary-light); border: 1px solid var(--border-accent);
+            border-radius: 50px; font-size: 0.82rem; font-weight: 700; color: var(--primary);
+        }
+        .hero h1 {
+            font-size: clamp(2.2rem,5vw,3.8rem); font-weight: 900; line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text) 30%, var(--accent) 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .hero p { font-size: 1.1rem; color: var(--text-muted); max-width: 620px; margin: 0 auto; line-height: 1.75; }
+
+        /* ===== SECTION LABEL ===== */
+        .section-label {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 0.78rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.12em; color: var(--primary); margin-bottom: 16px;
+        }
+        .section-label::after { content:''; flex:1; height:1px; background: var(--border); }
+        .section-title-h2 { font-size: clamp(1.6rem,3vw,2.2rem); font-weight: 900; color: var(--text); margin-bottom: 14px; }
+        .section-desc { color: var(--text-muted); line-height: 1.75; font-size: 1rem; max-width: 700px; }
+
+        /* ===== MISSION SECTION ===== */
+        .mission { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-bottom: 100px; animation: fadeInUp 0.7s ease 0.1s both; }
+        @media(max-width:768px) { .mission { grid-template-columns:1fr; } }
+        .mission-visual {
+            position: relative; border-radius: 24px; overflow: hidden;
+            background: var(--bg-card); border: 1px solid var(--border);
+            padding: 40px; text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .brain-anim {
+            width: 140px; height: 140px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            margin: 0 auto 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; color: white;
+            box-shadow: 0 0 60px rgba(108,99,255,0.4);
+            animation: brainPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes brainPulse {
+            0%,100% { box-shadow: 0 0 60px rgba(108,99,255,0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 80px rgba(0,212,255,0.5); transform: scale(1.06); }
+        }
+        .mission-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+        .m-stat { background: var(--primary-light); border: 1px solid var(--border-accent); border-radius: 14px; padding: 14px; }
+        .m-stat-val { font-size: 1.6rem; font-weight: 900; color: var(--primary); }
+        .m-stat-lbl { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+        /* ===== TUMOR CARDS ===== */
+        .tumor-section { margin-bottom: 100px; animation: fadeInUp 0.7s ease 0.2s both; }
+        .tumor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 32px; }
+        .tumor-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; transition: all 0.35s;
+            position: relative; overflow: hidden; cursor: default;
+            box-shadow: var(--shadow);
+        }
+        .tumor-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: var(--tc-color); border-radius: 20px 20px 0 0;
+        }
+        .tumor-card:hover { transform: translateY(-8px); border-color: var(--border-accent); background: var(--bg-card-hover); }
+        .tc-icon {
+            width: 60px; height: 60px; border-radius: 16px;
+            background: var(--tc-bg); display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; margin-bottom: 18px;
+        }
+        .tc-name { font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .tc-type { font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+                   background: var(--tc-bg); color: var(--tc-color); margin-bottom: 14px; display: inline-block; }
+        .tc-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; }
+        .tc-symptoms { margin-top: 16px; }
+        .tc-symptoms-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+        .tc-symptom { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 5px; }
+        .tc-symptom i { color: var(--tc-color); font-size: 0.7rem; flex-shrink: 0; }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-section { margin-bottom: 100px; animation: fadeInUp 0.7s ease 0.3s both; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; margin-top: 40px; position: relative; }
+        .steps::before {
+            content: ''; position: absolute; top: 36px; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0.3;
+        }
+        @media(max-width:640px) { .steps::before { display:none; } }
+        .step { text-align: center; padding: 20px 16px; position: relative; z-index: 1; }
+        .step-num {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 18px; font-size: 1.5rem; color: white;
+            box-shadow: 0 0 30px rgba(108,99,255,0.35);
+            transition: transform 0.3s;
+        }
+        .step:hover .step-num { transform: scale(1.15); }
+        .step-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .step-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+        /* ===== TECH STACK ===== */
+        .tech-section { margin-bottom: 100px; animation: fadeInUp 0.7s ease 0.35s both; }
+        .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 32px; }
+        .tech-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 22px; text-align: center;
+            transition: all 0.3s; box-shadow: var(--shadow);
+        }
+        .tech-card:hover { transform: translateY(-4px); border-color: var(--border-accent); background: var(--bg-card-hover); }
+        .tech-icon { font-size: 2rem; margin-bottom: 12px; }
+        .tech-name { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+        .tech-role { font-size: 0.78rem; color: var(--text-muted); }
+        .tech-badge {
+            display: inline-block; margin-top: 8px; padding: 2px 10px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 700;
+            background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-accent);
+        }
+
+        /* ===== DISCLAIMER BANNER ===== */
+        .disclaimer {
+            background: linear-gradient(135deg, rgba(255,165,2,0.1), rgba(255,71,87,0.08));
+            border: 1px solid rgba(255,165,2,0.25);
+            border-radius: 20px; padding: 32px; text-align: center;
+            animation: fadeInUp 0.7s ease 0.45s both;
+        }
+        .disclaimer i { font-size: 2rem; color: var(--warning); margin-bottom: 14px; display: block; }
+        .disclaimer h3 { font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+        .disclaimer p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.75; max-width: 700px; margin: 0 auto; }
+
+        /* ===== CTA BUTTON ===== */
+        .cta-section { text-align: center; margin-bottom: 60px; animation: fadeInUp 0.7s ease 0.4s both; }
+        .cta-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 16px 36px; border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white; text-decoration: none; font-weight: 700; font-size: 1rem;
+            box-shadow: 0 8px 32px rgba(108,99,255,0.4);
+            transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .cta-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+        .cta-btn:hover::before { left: 100%; }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(108,99,255,0.5); }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.4); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-scene">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+</div>
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <div class="nav-brand-icon"><i class="fas fa-brain"></i></div>
+        <span class="nav-brand-text">NeuroScan AI</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="/about" class="nav-link active"><i class="fas fa-info-circle"></i> About</a>
+    </div>
+    <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode" onclick="toggleTheme()">
+            <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        {% if session.get('user') %}
+        <a href="/logout" style="padding:7px 16px;border-radius:50px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);text-decoration:none;font-size:0.85rem;font-weight:600;transition:all 0.25s;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+        {% else %}
+        <a href="/login" style="padding:7px 16px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--accent));color:white;text-decoration:none;font-size:0.85rem;font-weight:700;">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="page">
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-badge"><i class="fas fa-dna"></i> AI-Powered Medical Imaging</div>
+        <h1>About NeuroScan AI</h1>
+        <p>A deep learning system designed to assist medical professionals in detecting and classifying brain tumors from MRI scans with high accuracy and detailed stage analysis.</p>
+    </div>
+
+    <!-- Mission -->
+    <div class="mission">
+        <div>
+            <div class="section-label"><i class="fas fa-bullseye"></i> Our Mission</div>
+            <h2 class="section-title-h2">AI-Assisted Brain Tumor Detection</h2>
+            <p class="section-desc">NeuroScan AI bridges the gap between advanced deep learning research and clinical practice. By analyzing MRI scans in seconds, it provides radiologists and neurologists with a second opinion — helping catch tumors earlier and improving patient outcomes.</p>
+            <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--text);">Results in Under 5 Seconds</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">Instant AI-powered MRI analysis — no waiting</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:rgba(0,230,118,0.12);display:flex;align-items:center;justify-content:center;color:var(--success);flex-shrink:0;">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--text);">100% Local & Private</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">All data processed on your device — never uploaded</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:rgba(0,212,255,0.12);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--text);">3D Tumor Visualization</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">Interactive surface & point-cloud models of tumor region</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mission-visual">
+            <div class="brain-anim"><i class="fas fa-brain"></i></div>
+            <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;">VGG16 Transfer Learning</div>
+            <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;">Fine-tuned on brain MRI datasets for 4-class classification</div>
+            <div class="mission-stats">
+                <div class="m-stat">
+                    <div class="m-stat-val">4</div>
+                    <div class="m-stat-lbl">Tumor Classes</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-val">&lt;5s</div>
+                    <div class="m-stat-lbl">Analysis Time</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-val">3D</div>
+                    <div class="m-stat-lbl">Visualization</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-val">224px</div>
+                    <div class="m-stat-lbl">Input Resolution</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tumor Types -->
+    <div class="tumor-section">
+        <div class="section-label"><i class="fas fa-microscope"></i> What We Detect</div>
+        <h2 class="section-title-h2">4 Tumor Classifications</h2>
+        <p class="section-desc">Our model is trained to classify MRI scans into one of four categories with confidence scoring and stage analysis.</p>
+        <div class="tumor-grid">
+            <!-- No Tumor -->
+            <div class="tumor-card" style="--tc-color:#00e676;--tc-bg:rgba(0,230,118,0.1);">
+                <div class="tc-icon">✅</div>
+                <div class="tc-name">No Tumor</div>
+                <div class="tc-type">Normal</div>
+                <p class="tc-desc">MRI scan appears normal with no detectable abnormal growth or lesion. Routine follow-up scans are still recommended.</p>
+                <div class="tc-symptoms">
+                    <div class="tc-symptoms-title">Characteristics</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> No visible mass or lesion</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Normal brain structure</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Uniform tissue density</div>
+                </div>
+            </div>
+            <!-- Pituitary -->
+            <div class="tumor-card" style="--tc-color:#6c63ff;--tc-bg:rgba(108,99,255,0.1);">
+                <div class="tc-icon">🧬</div>
+                <div class="tc-name">Pituitary Tumor</div>
+                <div class="tc-type">Pituitary Adenoma</div>
+                <p class="tc-desc">Arises from the pituitary gland at the brain's base. Most are benign (adenomas) but can cause hormonal imbalances and vision issues.</p>
+                <div class="tc-symptoms">
+                    <div class="tc-symptoms-title">Common Symptoms</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Vision changes / headaches</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Hormonal imbalances</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Unusual thirst / urination</div>
+                </div>
+            </div>
+            <!-- Meningioma -->
+            <div class="tumor-card" style="--tc-color:#00d4ff;--tc-bg:rgba(0,212,255,0.1);">
+                <div class="tc-icon">🔬</div>
+                <div class="tc-name">Meningioma Tumor</div>
+                <div class="tc-type">Meningeal Origin</div>
+                <p class="tc-desc">Forms on the membranes (meninges) surrounding the brain. Usually slow-growing and often benign, but location can affect treatment.</p>
+                <div class="tc-symptoms">
+                    <div class="tc-symptoms-title">Common Symptoms</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Headaches, seizures</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Arm / leg weakness</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Speech difficulties</div>
+                </div>
+            </div>
+            <!-- Glioma -->
+            <div class="tumor-card" style="--tc-color:#ff4757;--tc-bg:rgba(255,71,87,0.1);">
+                <div class="tc-icon">⚠️</div>
+                <div class="tc-name">Glioma Tumor</div>
+                <div class="tc-type">Glial Cell Origin</div>
+                <p class="tc-desc">Originates in glial cells of the brain/spinal cord. Can be low-grade (slow) to high-grade (aggressive GBM). Requires urgent evaluation.</p>
+                <div class="tc-symptoms">
+                    <div class="tc-symptoms-title">Common Symptoms</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Severe sudden headaches</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Personality/memory changes</div>
+                    <div class="tc-symptom"><i class="fas fa-circle"></i> Seizures, nausea</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="how-section">
+        <div class="section-label"><i class="fas fa-cogs"></i> The Process</div>
+        <h2 class="section-title-h2">How NeuroScan AI Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num"><i class="fas fa-upload"></i></div>
+                <div class="step-title">1. Upload MRI</div>
+                <p class="step-desc">Drag & drop your brain MRI scan (JPG/PNG). Fill in basic patient information.</p>
+            </div>
+            <div class="step">
+                <div class="step-num"><i class="fas fa-microchip"></i></div>
+                <div class="step-title">2. AI Preprocessing</div>
+                <p class="step-desc">Image is resized to 224×224, normalized, and fed into the VGG16 model pipeline.</p>
+            </div>
+            <div class="step">
+                <div class="step-num"><i class="fas fa-brain"></i></div>
+                <div class="step-title">3. Deep Learning</div>
+                <p class="step-desc">VGG16 transfer-learned CNN classifies the scan into one of 4 tumor categories.</p>
+            </div>
+            <div class="step">
+                <div class="step-num"><i class="fas fa-fire"></i></div>
+                <div class="step-title">4. Heatmap + 3D</div>
+                <p class="step-desc">A heatmap overlay and interactive 3D surface model shows the suspected tumor region.</p>
+            </div>
+            <div class="step">
+                <div class="step-num"><i class="fas fa-file-medical"></i></div>
+                <div class="step-title">5. PDF Report</div>
+                <p class="step-desc">Full diagnostic report with stage analysis, precautions, and MRI image — downloadable instantly.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="tech-section">
+        <div class="section-label"><i class="fas fa-layer-group"></i> Technology</div>
+        <h2 class="section-title-h2">Built With</h2>
+        <div class="tech-grid">
+            <div class="tech-card">
+                <div class="tech-icon">🐍</div>
+                <div class="tech-name">Python 3.11</div>
+                <div class="tech-role">Core Language</div>
+                <div class="tech-badge">Backend</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🧠</div>
+                <div class="tech-name">TensorFlow 2.15</div>
+                <div class="tech-role">Deep Learning</div>
+                <div class="tech-badge">AI Engine</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🏛️</div>
+                <div class="tech-name">VGG16</div>
+                <div class="tech-role">CNN Architecture</div>
+                <div class="tech-badge">Transfer Learning</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🌶️</div>
+                <div class="tech-name">Flask 3.0</div>
+                <div class="tech-role">Web Framework</div>
+                <div class="tech-badge">Server</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">📊</div>
+                <div class="tech-name">Plotly</div>
+                <div class="tech-role">3D Visualization</div>
+                <div class="tech-badge">Frontend</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🖼️</div>
+                <div class="tech-name">OpenCV</div>
+                <div class="tech-role">Image Processing</div>
+                <div class="tech-badge">Vision</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🔐</div>
+                <div class="tech-name">Flask-Bcrypt</div>
+                <div class="tech-role">Password Hashing</div>
+                <div class="tech-badge">Security</div>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🗃️</div>
+                <div class="tech-name">SQLite</div>
+                <div class="tech-role">User Database</div>
+                <div class="tech-badge">Storage</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <h2 class="section-title-h2" style="margin-bottom:16px;">Ready to Analyze an MRI?</h2>
+        <p style="color:var(--text-muted);margin-bottom:32px;font-size:1rem;">Upload a scan and get your AI-powered diagnosis in under 5 seconds.</p>
+        <a href="/" class="cta-btn"><i class="fas fa-brain"></i> Open Dashboard</a>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Medical Disclaimer</h3>
+        <p>NeuroScan AI is a <strong>research and educational tool</strong> designed to assist medical professionals. All results are AI-generated and must be reviewed and confirmed by a qualified neurologist, radiologist, or neurosurgeon. <strong>Do not use this as a substitute for professional medical advice, diagnosis, or treatment.</strong></p>
+    </div>
+
+</div>
+
+<script>
+// ===== DARK/LIGHT MODE =====
+const root = document.documentElement;
+const toggle = document.getElementById('themeToggle');
+const icon   = document.getElementById('themeIcon');
+
+function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    toggle.title   = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    localStorage.setItem('neuroscan-theme', theme);
+}
+
+function toggleTheme() {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+
+// Load saved preference
+const savedTheme = localStorage.getItem('neuroscan-theme') || 'dark';
+applyTheme(savedTheme);
+</script>
+</body>
+</html>

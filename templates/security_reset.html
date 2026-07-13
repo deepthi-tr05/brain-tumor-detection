@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Reset – NeuroScan AI</title>
+    <meta name="description" content="Reset your NeuroScan AI password using your security question">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root[data-theme="dark"] {
+            --primary:#a78bfa; --primary-dark:#7c3aed; --accent:#f472b6;
+            --bg-deep:#0d0614; --bg-card:rgba(124,58,237,0.07);
+            --border:rgba(167,139,250,0.15); --text:#f1e8ff; --text-muted:rgba(220,200,255,0.65);
+        }
+        :root[data-theme="light"] {
+            --primary:#7c3aed; --primary-dark:#5b21b6; --accent:#ec4899;
+            --bg-deep:#faf5ff; --bg-card:rgba(255,255,255,0.95);
+            --border:rgba(124,58,237,0.2); --text:#1e1035; --text-muted:#4c1d95;
+        }
+        body { font-family:'Inter',sans-serif;background:var(--bg-deep);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:background 0.4s,color 0.4s; }
+        .bg-scene { position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+            background:radial-gradient(ellipse at 10% 50%,rgba(124,58,237,0.18) 0%,transparent 55%),
+                        radial-gradient(ellipse at 90% 15%,rgba(236,72,153,0.12) 0%,transparent 45%),var(--bg-deep); }
+        [data-theme="light"] .bg-scene { background:radial-gradient(ellipse at 10% 50%,rgba(124,58,237,0.09) 0%,transparent 55%),var(--bg-deep); }
+        .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orbFloat 20s ease-in-out infinite;}
+        .orb-1{width:640px;height:640px;background:radial-gradient(circle,rgba(124,58,237,0.35),rgba(167,139,250,0.15) 50%,transparent 70%);top:-220px;left:-160px;}
+        .orb-2{width:540px;height:540px;background:radial-gradient(circle,rgba(236,72,153,0.28),rgba(244,114,182,0.10) 50%,transparent 70%);bottom:-130px;right:-110px;animation-delay:7s;}
+        @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}25%{transform:translate(28px,-26px) scale(1.04);}50%{transform:translate(-18px,18px) scale(0.97);}75%{transform:translate(12px,22px) scale(1.02);}}
+        [data-theme="light"] .orb{opacity:0.2;}
+        .hex-grid{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.3;
+            background-image:linear-gradient(rgba(167,139,250,0.10) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,0.10) 1px,transparent 1px);
+            background-size:44px 44px;animation:gridShift 30s linear infinite;}
+        @keyframes gridShift{0%{background-position:0 0;}100%{background-position:44px 44px;}}
+        .scanline{position:fixed;left:0;right:0;height:1px;z-index:0;pointer-events:none;
+            background:linear-gradient(90deg,transparent 0%,rgba(167,139,250,0.6) 25%,rgba(236,72,153,0.9) 50%,rgba(167,139,250,0.6) 75%,transparent 100%);
+            animation:scanSweep 5s linear infinite;opacity:0.6;box-shadow:0 0 16px rgba(167,139,250,0.7);}
+        @keyframes scanSweep{0%{top:-2%;opacity:0;}5%{opacity:0.6;}95%{opacity:0.6;}100%{top:102%;opacity:0;}}
+
+        .container{position:relative;z-index:10;width:90%;max-width:460px;padding:20px 0;}
+        .brand{text-align:center;margin-bottom:28px;}
+        .brand-icon{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;
+            background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:18px;margin-bottom:14px;
+            box-shadow:0 0 40px rgba(167,139,250,0.5);animation:iconPulse 3s ease-in-out infinite;}
+        @keyframes iconPulse{0%,100%{box-shadow:0 0 40px rgba(167,139,250,0.5);}50%{box-shadow:0 0 60px rgba(236,72,153,0.5);}}
+        .brand-icon i{font-size:28px;color:white;}
+        .brand h1{font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,#e9d5ff 20%,#f472b6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .brand p{color:var(--text-muted);font-size:0.86rem;margin-top:5px;}
+
+        .auth-card{background:var(--bg-card);backdrop-filter:blur(28px);border:1px solid var(--border);border-radius:26px;padding:36px;box-shadow:0 24px 80px rgba(0,0,0,0.5);}
+        .card-title{font-size:1.15rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+        .card-subtitle{font-size:0.83rem;color:var(--text-muted);margin-bottom:24px;line-height:1.6;}
+
+        .step{display:none;animation:fadeInStep 0.4s ease;}
+        .step.active{display:block;}
+        @keyframes fadeInStep{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+        .step-indicator{display:flex;align-items:center;gap:8px;margin-bottom:24px;}
+        .step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;transition:all 0.3s;}
+        .step-dot.active{background:linear-gradient(135deg,#7c3aed,#ec4899);color:white;}
+        .step-dot.done{background:rgba(52,211,153,0.2);border:1px solid rgba(52,211,153,0.4);color:#34d399;}
+        .step-dot.pending{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);color:var(--text-muted);}
+        .step-line{flex:1;height:1px;background:var(--border);}
+
+        .form-label{display:block;font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;}
+        .form-input{width:100%;padding:13px 16px;background:rgba(167,139,250,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:0.92rem;font-family:'Inter',sans-serif;outline:none;transition:all 0.3s;margin-bottom:16px;}
+        .form-input:focus{border-color:var(--primary);background:rgba(167,139,250,0.12);box-shadow:0 0 0 3px rgba(167,139,250,0.15);}
+        .question-box{background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:0.9rem;color:var(--text);line-height:1.5;}
+
+        .btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(167,139,250,0.5);}
+        .btn-primary:disabled{opacity:0.65;cursor:not-allowed;transform:none;}
+        .btn-loader{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+
+        .alert{padding:12px 16px;border-radius:10px;font-size:0.84rem;margin-bottom:16px;display:none;align-items:center;gap:10px;}
+        .alert-success{background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.25);color:#34d399;}
+        .alert-error{background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.25);color:#fb7185;}
+
+        .back-link{text-align:center;margin-top:20px;font-size:0.86rem;color:var(--text-muted);}
+        .back-link a{color:var(--primary);text-decoration:none;font-weight:600;}
+        .back-link a:hover{text-decoration:underline;}
+
+        .theme-toggle-fab{position:fixed;top:18px;right:18px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(124,58,237,0.08);border:1px solid var(--border);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;color:var(--text-muted);font-size:1rem;}
+        .theme-toggle-fab:hover{background:rgba(167,139,250,0.15);color:var(--primary);transform:rotate(20deg);}
+
+        [data-theme="light"] .auth-card{background:rgba(255,255,255,0.97);box-shadow:0 24px 80px rgba(124,58,237,0.15);}
+        [data-theme="light"] .form-input{background:rgba(255,255,255,0.95);color:#1e1035;border-color:rgba(124,58,237,0.25);}
+        [data-theme="light"] .form-label{color:#5b21b6;}
+    </style>
+</head>
+<body>
+<button class="theme-toggle-fab" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+<div class="bg-scene"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+<div class="hex-grid"></div>
+<div class="scanline"></div>
+
+<div class="container">
+    <div class="brand">
+        <div class="brand-icon"><i class="fas fa-brain"></i></div>
+        <h1>NeuroScan AI</h1>
+        <p>Security Question Reset</p>
+    </div>
+    <div class="auth-card">
+        <!-- Step indicator -->
+        <div class="step-indicator">
+            <div class="step-dot active" id="dot1">1</div>
+            <div class="step-line"></div>
+            <div class="step-dot pending" id="dot2">2</div>
+            <div class="step-line"></div>
+            <div class="step-dot pending" id="dot3">3</div>
+        </div>
+
+        <!-- Step 1: Email -->
+        <div class="step active" id="step1">
+            <div class="card-title">Find Your Account</div>
+            <div class="card-subtitle">Enter your registered email to retrieve your security question.</div>
+            <div class="alert alert-error" id="err1"><i class="fas fa-exclamation-circle"></i><span id="err1Txt"></span></div>
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" id="srEmail" placeholder="your@email.com">
+            <button class="btn-primary" onclick="fetchQuestion()">
+                <div class="btn-loader" id="loader1"></div>
+                <i class="fas fa-search" id="icon1"></i>
+                <span id="text1">Find My Account</span>
+            </button>
+        </div>
+
+        <!-- Step 2: Answer security question -->
+        <div class="step" id="step2">
+            <div class="card-title">Answer Your Security Question</div>
+            <div class="card-subtitle">Answer the question you set during registration.</div>
+            <div class="alert alert-error" id="err2"><i class="fas fa-exclamation-circle"></i><span id="err2Txt"></span></div>
+            <label class="form-label">Security Question</label>
+            <div class="question-box" id="questionBox">Loading…</div>
+            <label class="form-label">Your Answer</label>
+            <input type="text" class="form-input" id="srAnswer" placeholder="Type your answer…">
+            <button class="btn-primary" onclick="verifyAnswer()">
+                <div class="btn-loader" id="loader2"></div>
+                <i class="fas fa-check-circle" id="icon2"></i>
+                <span id="text2">Verify Answer</span>
+            </button>
+        </div>
+
+        <!-- Step 3: New password -->
+        <div class="step" id="step3">
+            <div class="card-title">Set New Password</div>
+            <div class="card-subtitle">Choose a strong password (min. 6 characters).</div>
+            <div class="alert alert-error" id="err3"><i class="fas fa-exclamation-circle"></i><span id="err3Txt"></span></div>
+            <div class="alert alert-success" id="succ3"><i class="fas fa-check-circle"></i><span id="succ3Txt"></span></div>
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-input" id="newPw" placeholder="New password">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" class="form-input" id="confirmPw" placeholder="Confirm password">
+            <button class="btn-primary" id="resetBtn" onclick="resetPassword()">
+                <div class="btn-loader" id="loader3"></div>
+                <i class="fas fa-key" id="icon3"></i>
+                <span id="text3">Reset Password</span>
+            </button>
+        </div>
+    </div>
+    <div class="back-link">Remember your password? <a href="/login">Sign In</a> &nbsp;|&nbsp; <a href="/forgot-password">Email Reset</a></div>
+</div>
+
+<script>
+const root = document.documentElement;
+function applyTheme(t){root.setAttribute('data-theme',t);document.getElementById('themeIcon').className=t==='dark'?'fas fa-sun':'fas fa-moon';localStorage.setItem('neuroscan-theme',t);}
+function toggleTheme(){applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');}
+applyTheme(localStorage.getItem('neuroscan-theme')||'dark');
+
+let srToken = null;
+
+function setStep(n) {
+    document.querySelectorAll('.step').forEach((s,i)=>{s.classList.toggle('active',i===n-1);});
+    for(let i=1;i<=3;i++){
+        const d=document.getElementById('dot'+i);
+        if(i<n){d.className='step-dot done';d.innerHTML='<i class="fas fa-check"></i>';}
+        else if(i===n){d.className='step-dot active';d.textContent=i;}
+        else{d.className='step-dot pending';d.textContent=i;}
+    }
+}
+
+function setLoading(n,on){
+    document.getElementById('loader'+n).style.display=on?'block':'none';
+    document.getElementById('icon'+n).style.display=on?'none':'inline';
+}
+
+function showErr(n,msg){const el=document.getElementById('err'+n);el.querySelector('span').textContent=msg;el.style.display='flex';}
+function hideErr(n){document.getElementById('err'+n).style.display='none';}
+
+async function fetchQuestion(){
+    const email=document.getElementById('srEmail').value.trim();
+    if(!email){showErr(1,'Please enter your email');return;}
+    hideErr(1);setLoading(1,true);
+    try{
+        const r=await fetch('/security-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'fetch',email})});
+        const d=await r.json();
+        if(!r.ok){showErr(1,d.error);return;}
+        document.getElementById('questionBox').textContent=d.question;
+        setStep(2);
+    }catch(e){showErr(1,'Network error. Please try again.');}
+    finally{setLoading(1,false);}
+}
+
+async function verifyAnswer(){
+    const email=document.getElementById('srEmail').value.trim();
+    const answer=document.getElementById('srAnswer').value.trim();
+    if(!answer){showErr(2,'Please enter your answer');return;}
+    hideErr(2);setLoading(2,true);
+    try{
+        const r=await fetch('/security-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',email,answer})});
+        const d=await r.json();
+        if(!r.ok){showErr(2,d.error);return;}
+        srToken=d.token;
+        setStep(3);
+    }catch(e){showErr(2,'Network error. Please try again.');}
+    finally{setLoading(2,false);}
+}
+
+async function resetPassword(){
+    const pw=document.getElementById('newPw').value;
+    const cpw=document.getElementById('confirmPw').value;
+    if(pw!==cpw){showErr(3,'Passwords do not match');return;}
+    if(pw.length<6){showErr(3,'Password must be at least 6 characters');return;}
+    hideErr(3);setLoading(3,true);
+    const email=document.getElementById('srEmail').value.trim();
+    try{
+        const r=await fetch('/security-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset',email,token:srToken,newPassword:pw})});
+        const d=await r.json();
+        if(!r.ok){showErr(3,d.error);return;}
+        document.getElementById('succ3Txt').textContent=d.message+' Redirecting to login…';
+        document.getElementById('succ3').style.display='flex';
+        document.getElementById('resetBtn').disabled=true;
+        setTimeout(()=>window.location.href='/login',2500);
+    }catch(e){showErr(3,'Network error. Please try again.');}
+    finally{setLoading(3,false);}
+}
+
+document.querySelectorAll('.form-input').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){
+        if(inp.id==='srEmail')fetchQuestion();
+        else if(inp.id==='srAnswer')verifyAnswer();
+        else if(inp.id==='confirmPw')resetPassword();
+    }});
+});
+</script>
+</body>
+</html>
