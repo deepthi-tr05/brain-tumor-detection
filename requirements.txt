@@ -1,6 +1,7 @@
-# Brain Tumor Detection - Requirements
-# Compatible with Python 3.11.x
+# Brain Tumor Detection - Vercel Deployment Requirements
+# Compatible with Python 3.12 (Vercel Serverless environment)
 # Install with: pip install -r requirements.txt
+# Note: For full local development (with ML training/model loading), use requirements-local.txt
 
 # Web Framework
 flask==3.0.3
@@ -18,17 +19,5 @@ pillow==10.4.0
 # Numerical
 numpy==1.26.4
 
-# Deep Learning (TF 2.15 supports Python 3.11)
-tensorflow-cpu>=2.15.0
-
-# scikit / scipy
-scikit-learn==1.5.1
-scipy==1.13.1
-
 # Visualisation
-matplotlib==3.8.4
-seaborn==0.13.2
 plotly==5.22.0
-
-# Utilities
-h5py==3.11.0
