@@ -15,6 +15,7 @@
 
 ---
 
+LIVE DEMO : **[https://brain-tumor-detections.vercel.app/](CLICK_HERE)**
 ## ⚙️ Core Architecture & Pipeline
 
 Below is the workflow showing how an MRI scan is processed from user upload through prediction, visualization generation, and secure storage in the SQLite history.
@@ -136,7 +137,7 @@ Make sure a trained `.h5` model exists in the `models/` directory.
 ```bash
 python app.py
 ```
-Visit the server locally: **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
+Visit the server locally: **[https://brain-tumor-detections.vercel.app/](http://127.0.0.1:5000)**
 
 ---
 
