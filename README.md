@@ -15,7 +15,7 @@
 
 ---
 
-🚀 Live Demo[https://brain-tumor-detections.vercel.app/]
+🚀 Live Demo(https://brain-tumor-detections.vercel.app/)
 ## ⚙️ Core Architecture & Pipeline
 
 Below is the workflow showing how an MRI scan is processed from user upload through prediction, visualization generation, and secure storage in the SQLite history.
