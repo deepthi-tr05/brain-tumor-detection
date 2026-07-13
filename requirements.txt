@@ -19,7 +19,7 @@ pillow==10.4.0
 numpy==1.26.4
 
 # Deep Learning (TF 2.15 supports Python 3.11)
-tensorflow==2.15.0
+tensorflow>=2.15.0
 
 # scikit / scipy
 scikit-learn==1.5.1
