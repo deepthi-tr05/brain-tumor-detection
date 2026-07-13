@@ -12,14 +12,14 @@ flask-mail==0.10.0
 python-dotenv==1.0.0
 
 # Image Processing
-opencv-python==4.10.0.84
+opencv-python-headless==4.10.0.84
 pillow==10.4.0
 
 # Numerical
 numpy==1.26.4
 
 # Deep Learning (TF 2.15 supports Python 3.11)
-tensorflow>=2.15.0
+tensorflow-cpu>=2.15.0
 
 # scikit / scipy
 scikit-learn==1.5.1
